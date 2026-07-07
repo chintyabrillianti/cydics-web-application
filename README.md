@@ -274,9 +274,11 @@ Generate Application Key
 php artisan key:generate
 ```
 
-Configure Database
+## Configure Environment
 
-```
+Update the `.env` file according to your local environment.
+
+```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -284,6 +286,8 @@ DB_DATABASE=your_database
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
 ```
+
+> **Note:** During development, this project used a MySQL database named `yayasan`.
 
 Run Migration
 
@@ -316,13 +320,13 @@ php artisan serve
 
 This project was developed for educational purposes as a final project.
 
-# 👩‍💻 Developer
+## 👩‍💻 Developer
 
-## Chintya Ayu Brillianti
+**Chintya Ayu Brillianti**
 
 Bachelor of Informatics Engineering
 
-Interested in
+**Areas of Interest**
 
 - Software Engineering
 - UI/UX Design
@@ -330,11 +334,9 @@ Interested in
 
 📍 Bogor, Indonesia
 
-# 📬 Contact
+📧 chintyabrillianti@gmail.com
 
-Email : chintyabrillianti@gmail.com
-
-GitHub : https://github.com/chintyabrillianti
+🐙 GitHub: https://github.com/chintyabrillianti
 
 
 
@@ -346,9 +348,10 @@ GitHub : https://github.com/chintyabrillianti
 
 ## 🌐 Live Demo
 
-> Currently running in a local development environment.
+Currently available for local development only.
 
----
+Deployment to a public server is planned for a future release.
+
 
 <p align="center">
 

@@ -1,0 +1,54 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('donasis', function (Blueprint $table) {
+
+            $table->id();
+
+            // Donatur yang mengirim bukti
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignId('program_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            // Nominal diisi admin saat verifikasi
+            $table->decimal('nominal', 12, 0)
+                ->nullable();
+
+            // Bukti transfer
+            $table->string('bukti_transfer');
+
+            // Catatan dari donatur (opsional)
+            $table->text('catatan')
+                ->nullable();
+
+            // Status donasi
+            $table->enum('status', [
+                'Menunggu',
+                'Terverifikasi'
+            ])->default('Menunggu');
+
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('donasis');
+    }
+};

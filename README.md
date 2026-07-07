@@ -5,7 +5,7 @@ Cinta Yatim Duafa Indonesian Communities
 </h3>
 
 <p align="center">
-A Web-Based Social Assistance Management System
+Web-Based Social Assistance Management System
 </p>
 
 <p align="center">
@@ -14,6 +14,9 @@ A Web-Based Social Assistance Management System
 ![PHP](https://img.shields.io/badge/PHP-8-blue?style=for-the-badge&logo=php)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-blue?style=for-the-badge&logo=mysql)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple?style=for-the-badge&logo=bootstrap)
+![HTML](https://img.shields.io/badge/HTML5-orange?style=for-the-badge&logo=html5)
+![CSS](https://img.shields.io/badge/CSS3-blue?style=for-the-badge&logo=css3)
+![JavaScript](https://img.shields.io/badge/JavaScript-yellow?style=for-the-badge&logo=javascript)
 ![Git](https://img.shields.io/badge/Git-Version_Control-orange?style=for-the-badge&logo=git)
 ![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)
 
@@ -23,57 +26,74 @@ A Web-Based Social Assistance Management System
 
 # 📖 About The Project
 
-CYDICS (Cinta Yatim Duafa Indonesian Communities) is a web-based social assistance management system developed as a final project for Yayasan Al-Farisi Indonesia.
+CYDICS (Cinta Yatim Duafa Indonesian Communities) is a web-based social assistance management system developed as a final project for **Yayasan Al-Farisi Indonesia**.
 
-The application helps foundations manage:
+The system is designed to simplify the management of social assistance programs, beneficiary applications, donations, transparency reports, and foundation website content through a secure multi-role platform.
 
-- Social assistance beneficiary applications
-- Donation management
-- Transparency reports
-- Website content management
-- Decision Tree-based beneficiary classification
+The application provides dedicated dashboards for administrators, beneficiaries, and donors while utilizing the **Decision Tree Algorithm** to support beneficiary eligibility classification.
 
-The system provides different dashboards and features for administrators, beneficiaries, and donors.
+---
+
+# 🎯 Objectives
+
+- Digitalize social assistance management.
+- Improve transparency in donation reporting.
+- Simplify beneficiary registration and verification.
+- Assist administrators in managing foundation activities.
+- Improve donation management.
+- Support decision making using the Decision Tree algorithm.
 
 ---
 
 # ✨ Main Features
 
-### 👤 Authentication
+## 🔐 Authentication
 
 - Login
 - Register
+- Forgot Password
 - Profile Management
-- Role-based Access
+- Role-Based Access Control
 
-### 🏠 Beneficiary
+---
+
+## 👤 Beneficiary
 
 - Submit Social Assistance Application
 - Upload Required Documents
 - View Application Status
 - Update Personal Profile
+- View Assistance History
 
-### ❤️ Donor
+---
 
-- Make Donations
+## ❤️ Donor
+
+- Donate Online
 - View Donation History
 - View Transparency Reports
+- View Foundation Activities
 
-### 🛠 Administrator
+---
+
+## 🛠 Administrator
 
 - Manage Beneficiaries
-- Manage Donations
+- Verify Applications
 - Manage Programs
+- Manage Donations
 - Manage Activities
 - Manage Transparency Reports
 - Manage Website Content
-- Verify Applications
+- Manage Annual Reports
 
 ---
 
 # 🌳 Decision Tree Implementation
 
-This project implements the Decision Tree algorithm to assist in determining the eligibility of social assistance beneficiaries based on predefined criteria.
+The Decision Tree algorithm is implemented to classify beneficiary eligibility based on several predefined criteria.
+
+The classification process assists administrators in making objective decisions while reducing manual assessment.
 
 ---
 
@@ -94,47 +114,119 @@ This project implements the Decision Tree algorithm to assist in determining the
 
 # 📸 Application Preview
 
-## Login Page
+## 🏠 Landing Page
 
-> *(Add screenshot here later)*
-
----
-
-## Admin Dashboard
-
-> *(Add screenshot here later)*
+![Landing](public/screenshots/landing.png)
 
 ---
 
-## Beneficiary Dashboard
+## 🔐 Login Page
 
-> *(Add screenshot here later)*
-
----
-
-## Donor Dashboard
-
-> *(Add screenshot here later)*
+![Login](public/screenshots/login.png)
 
 ---
 
-## Social Assistance Application
+## 🛠 Admin Dashboard
 
-> *(Add screenshot here later)*
-
----
-
-## Donation Page
-
-> *(Add screenshot here later)*
+![Admin Dashboard](public/screenshots/admin-dashboard.png)
 
 ---
 
-## Transparency Report
+## 👤 Beneficiary Dashboard
 
-> *(Add screenshot here later)*
+![Beneficiary Dashboard](public/screenshots/warga-dashboard.png)
 
 ---
+
+## ❤️ Donor Dashboard
+
+![Donor Dashboard](public/screenshots/donatur-dashboard.png)
+
+---
+
+## 📄 Social Assistance Application
+
+![Application](public/screenshots/pengajuan.png)
+
+---
+
+## 💰 Donation Page
+
+![Donation](public/screenshots/donasi.png)
+
+---
+
+## 📜 Donation History
+
+![Donation History](public/screenshots/riwayat-donasi.png)
+
+---
+
+## 📊 Transparency Report
+
+![Transparency Report](public/screenshots/laporan.png)
+
+---
+
+## 🌐 Website Management
+
+![Website Management](public/screenshots/website-management.png)
+
+---
+
+# 📊 Repository Information
+
+| Item | Description |
+|------|-------------|
+| Framework | Laravel 13 |
+| Language | PHP |
+| Database | MySQL |
+| Architecture | MVC |
+| Version Control | Git |
+| Repository | GitHub |
+
+# 🔒 Security Features
+
+- Authentication
+- Authorization
+- Role-Based Access Control
+- CSRF Protection
+- Password Hashing
+- Form Validation
+
+# 🗄 Database
+
+Main Database Tables
+
+```
+Users
+Pengajuan
+Donasi
+Program
+Kegiatan
+Laporan
+Laporan Tahunan
+Website Settings
+```
+
+# 🏗 System Architecture
+
+```text
+          User
+             │
+             ▼
+   Laravel Web Application
+             │
+             ▼
+      MySQL Database
+             │
+             ▼
+ Decision Tree Classification
+             │
+             ▼
+    Application Dashboard
+```
+
 
 # 📂 Project Structure
 
@@ -154,29 +246,52 @@ tests/
 
 # 🚀 Installation
 
+Clone Repository
+
 ```bash
 git clone https://github.com/chintyabrillianti/cydics-web-application.git
 ```
+
+Enter Project Directory
 
 ```bash
 cd cydics-web-application
 ```
 
+Install Dependencies
+
 ```bash
 composer install
 ```
+
+Copy Environment File
 
 ```bash
 cp .env.example .env
 ```
 
+Generate Application Key
+
 ```bash
 php artisan key:generate
 ```
 
+Configure Database
+
+```
+DB_CONNECTION=mysql
+DB_DATABASE=your_database
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
+
+Run Migration
+
 ```bash
 php artisan migrate
 ```
+
+Start Development Server
 
 ```bash
 php artisan serve
@@ -184,27 +299,59 @@ php artisan serve
 
 ---
 
-# 🎯 Future Improvements
+# 📈 Future Improvements
 
 - Payment Gateway Integration
 - Email Notification
+- Push Notification
 - Mobile Application
 - Dashboard Analytics
-- Export Reports to PDF
-- Real-time Notification
+- Export PDF Reports
+- Multi-Language Support
+- API Integration
 
 ---
+
+# 📄 License
+
+This project was developed for educational purposes as a final project.
 
 # 👩‍💻 Developer
 
-**Chintya Brillianti**
+## Chintya Ayu Brillianti
 
-Fresh Graduate — Informatics Engineering
+Bachelor of Informatics Engineering
+
+Interested in
+
+- Software Engineering
+- UI/UX Design
+- Mobile Development
 
 📍 Bogor, Indonesia
 
----
+# 📬 Contact
+
+Email : chintyabrillianti@gmail.com
+
+GitHub : https://github.com/chintyabrillianti
+
+
 
 # ⭐ Project Status
 
-✅ Completed as Final Project
+✅ Final Project Completed
+
+🚀 Developed using Laravel Framework and MySQL Database.
+
+## 🌐 Live Demo
+
+> Currently running in a local development environment.
+
+---
+
+<p align="center">
+
+Made with ❤️ using Laravel & MySQL
+
+</p>

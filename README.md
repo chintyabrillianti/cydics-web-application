@@ -116,63 +116,61 @@ The classification process assists administrators in making objective decisions 
 
 ## 🏠 Landing Page
 
-![Landing](public/screenshots/landing.png)
+<img src="public/screenshots/landing.png" width="100%">
 
 ---
 
 ## 🔐 Login Page
 
-![Login](public/screenshots/login.png)
+<img src="public/screenshots/login.png" width="100%">
 
 ---
 
 ## 🛠 Admin Dashboard
 
-![Admin Dashboard](public/screenshots/admin-dashboard.png)
+<img src="public/screenshots/admin-dashboard.png" width="100%">
 
 ---
 
 ## 👤 Beneficiary Dashboard
 
-![Beneficiary Dashboard](public/screenshots/warga-dashboard.png)
+<img src="public/screenshots/warga-dashboard.png" width="100%">
 
 ---
 
 ## ❤️ Donor Dashboard
 
-![Donor Dashboard](public/screenshots/donatur-dashboard.png)
+<img src="public/screenshots/donatur-dashboard.png" width="100%">
 
 ---
 
 ## 📄 Social Assistance Application
 
-![Application](public/screenshots/pengajuan.png)
+<img src="public/screenshots/pengajuan.png" width="100%">
 
 ---
 
 ## 💰 Donation Page
 
-![Donation](public/screenshots/donasi.png)
+<img src="public/screenshots/donasi.png" width="100%">
 
 ---
 
 ## 📜 Donation History
 
-![Donation History](public/screenshots/riwayat-donasi.png)
+<img src="public/screenshots/riwayat-donasi.png" width="100%">
 
 ---
 
 ## 📊 Transparency Report
 
-![Transparency Report](public/screenshots/laporan.png)
+<img src="public/screenshots/laporan.png" width="100%">
 
 ---
 
 ## 🌐 Website Management
 
-![Website Management](public/screenshots/website-management.png)
-
----
+<img src="public/screenshots/website-management.png" width="100%">
 
 # 📊 Repository Information
 
@@ -280,7 +278,11 @@ Configure Database
 
 ```
 DB_CONNECTION=mysql
-DB_DATABASE=yayasan
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_database
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 ```
 
 Run Migration

@@ -14,12 +14,6 @@
             </p>
         </div>
 
-        <div>
-            <span class="fw-semibold">
-                👤 {{ Auth::user()->name }}
-            </span>
-        </div>
-
     </div>
 
     <div class="row g-4 mb-4">

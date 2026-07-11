@@ -12,6 +12,7 @@ class DashboardController extends Controller
     {
         $this->resetStatusPerbaikan();
         $this->resetStatusPembaruan();
+        $this->resetStatusUsia();
         /*
         |--------------------------------------------------------------------------
         | 1. AMBIL DATA AWAL PENGAJUAN
@@ -297,5 +298,31 @@ private function resetStatusPembaruan()
             'tanggal_boleh_ajukan' => now()->addDays(30),
             'catatan_admin'        => 'Pembaruan dokumen melewati batas waktu.'
         ]);
+}
+
+private function resetStatusUsia()
+{
+    $pengajuan = Pengajuan::whereIn('kategori_bantuan', [
+            'Yatim',
+            'Piatu',
+            'Yatim-Piatu'
+        ])
+        ->where('status_pengajuan', 'Diterima')
+        ->where('status_penerima', 'Aktif')
+        ->get();
+
+    foreach ($pengajuan as $item) {
+
+        $umur = Carbon::parse($item->tanggal_lahir)->age;
+
+        if ($umur >= 18) {
+
+            $item->update([
+                'status_penerima'      => 'Tidak Aktif',
+                'tanggal_keputusan'    => now(),
+                'catatan_admin'        => 'Bantuan berakhir karena penerima telah melewati batas usia maksimal 18 tahun.'
+            ]);
+        }
+    }
 }
 }

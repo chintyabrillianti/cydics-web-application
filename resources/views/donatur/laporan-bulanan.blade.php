@@ -109,14 +109,16 @@
                     <tr>
 
                         <th>Periode</th>
-                        <th>Dana Masuk</th>
-                        <th>Dana Keluar</th>
-                        <th>Yatim</th>
-                        <th>Piatu</th>
-                        <th>Yatim Piatu</th>
-                        <th>Duafa Anak</th>
-                        <th>Duafa Lansia</th>
-                        <th>Aksi</th>
+<th>Saldo Awal</th>
+<th>Dana Masuk</th>
+<th>Dana Keluar</th>
+<th>Saldo Akhir</th>
+<th>Yatim</th>
+<th>Piatu</th>
+<th>Yatim Piatu</th>
+<th>Duafa Anak</th>
+<th>Duafa Lansia</th>
+<th>Aksi</th>
 
                     </tr>
 
@@ -148,37 +150,71 @@
 
                             </td>
 
-                            <td>
-
-                                <div class="uang-masuk">
-
-                                    Rp
-
-                                    <strong>
-
-                                        {{ number_format($laporan->dana_masuk, 0, ',', '.') }}
-
-                                    </strong>
-
-                                </div>
-
                             </td>
 
-                            <td>
+<td>
 
-                                <div class="uang-keluar">
+    <div class="uang-masuk">
 
-                                    Rp
+        Rp
 
-                                    <strong>
+        <strong>
 
-                                        {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
+            {{ number_format($laporan->saldo_awal,0,',','.') }}
 
-                                    </strong>
+        </strong>
 
-                                </div>
+    </div>
 
-                            </td>
+</td>
+
+<td>
+
+    <div class="uang-masuk">
+
+        Rp
+
+        <strong>
+
+            {{ number_format($laporan->dana_masuk,0,',','.') }}
+
+        </strong>
+
+    </div>
+
+</td>
+
+<td>
+
+    <div class="uang-keluar">
+
+        Rp
+
+        <strong>
+
+            {{ number_format($laporan->dana_keluar,0,',','.') }}
+
+        </strong>
+
+    </div>
+
+</td>
+
+<td>
+
+    <div class="uang-masuk">
+
+        Rp
+
+        <strong>
+
+            {{ number_format($laporan->saldo_akhir,0,',','.') }}
+
+        </strong>
+
+    </div>
+
+</td>
 
                             <td>{{ $laporan->jumlah_yatim }}</td>
 
@@ -208,7 +244,7 @@
 
                         <tr>
 
-                            <td colspan="9" class="text-center">
+                            <td colspan="11" class="text-center">
 
                                 Belum ada laporan.
 

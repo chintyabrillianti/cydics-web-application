@@ -14,6 +14,7 @@ use App\Models\Kegiatan;
 use App\Models\Donasi;
 use App\Models\Laporan;
 use App\Models\LaporanTahunan;
+use Illuminate\Support\Facades\Auth;
 use App\Services\DuafaAnakDecisionTree;
 use App\Services\DuafaLansiaDecisionTree;
 
@@ -23,6 +24,7 @@ class AdminController extends Controller
     {
         $this->resetStatusPerbaikan();
         $this->resetStatusPembaruan();
+        $this->resetPembaruanKadaluarsa();
         Carbon::setLocale('id');
         $totalWarga = User::where(
             'role',
@@ -251,6 +253,7 @@ class AdminController extends Controller
         }
 
         Program::create([
+            
             'nama' => $request->nama,
             'deskripsi' => $request->deskripsi,
             'foto' => $foto,
@@ -328,6 +331,8 @@ class AdminController extends Controller
         }
 
         Kegiatan::create([
+            'user_id' => Auth::id(),
+
             'judul' => $request->judul,
             'deskripsi' => $request->deskripsi,
             'tanggal' => $request->tanggal,
@@ -437,6 +442,7 @@ class AdminController extends Controller
     {
         $this->resetStatusPerbaikan();
         $this->resetStatusPembaruan();
+        $this->resetPembaruanKadaluarsa();
         $query = Pengajuan::query();
 
         if ($request->nama) {
@@ -480,6 +486,7 @@ class AdminController extends Controller
     {
         $this->resetStatusPerbaikan();
         $this->resetStatusPembaruan();
+        $this->resetPembaruanKadaluarsa();
         $query = Pengajuan::query();
 
         // Cari nama
@@ -774,17 +781,17 @@ class AdminController extends Controller
         );
     }
     private function resetStatusPerbaikan()
-{
-    Pengajuan::where('status_pengajuan', 'Perbaikan')
-        ->whereDate('tanggal_selesai', '<', today())
-        ->update([
-            'status_pengajuan'   => 'Ditolak',
-            'status_penerima'    => 'Tidak Aktif',
-            'tanggal_keputusan'  => now(),
-            'tanggal_boleh_ajukan' => now()->addDays(30),
-            'catatan_admin'      => 'Perbaikan dokumen melewati batas waktu.'
-        ]);
-}
+    {
+        Pengajuan::where('status_pengajuan', 'Perbaikan')
+            ->whereDate('tanggal_selesai', '<', today())
+            ->update([
+                'status_pengajuan' => 'Ditolak',
+                'status_penerima' => 'Tidak Aktif',
+                'tanggal_keputusan' => now(),
+                'tanggal_boleh_ajukan' => now()->addDays(30),
+                'catatan_admin' => 'Perbaikan dokumen melewati batas waktu.'
+            ]);
+    }
 
     public function tolak(Request $request, $id)
     {
@@ -834,6 +841,7 @@ class AdminController extends Controller
     {
         $this->resetStatusPerbaikan();
         $this->resetStatusPembaruan();
+        $this->resetPembaruanKadaluarsa();
         $query = Pengajuan::where(function ($q) {
 
             // Semua yang ditolak tetap menjadi arsip
@@ -897,34 +905,24 @@ class AdminController extends Controller
 
         if ($request->filled('status')) {
 
-    if ($request->status == 'Selesai') {
+            if ($request->status == 'Selesai') {
 
     $query->where('status_pengajuan', 'Diterima')
           ->where('status_penerima', 'Tidak Aktif')
           ->where(function ($q) {
 
-              $q->whereIn('kategori_bantuan', [
-                  'Yatim',
-                  'Piatu',
-                  'Yatim-Piatu'
-              ])
-
-              ->orWhere(function ($x) {
-
-                  $x->where('kategori_bantuan', 'Duafa Anak')
-                    ->whereNotNull('tanggal_lahir')
-                    ->whereDate('tanggal_lahir', '<=', now()->subYears(18));
-
-              });
+              $q->where('catatan_admin', 'like', '%batas usia%')
+                ->orWhere('catatan_admin', 'like', '%meninggal%');
 
           });
-    } else {
 
-        $query->where('status_pengajuan', $request->status);
+} else {
 
-    }
+                $query->where('status_pengajuan', $request->status);
 
-}
+            }
+
+        }
 
         $arsip = $query
             ->latest()
@@ -935,49 +933,33 @@ class AdminController extends Controller
 // STATISTIK (menggunakan query yang sama dengan tabel)
 // ===============================
 
-$baseQuery = clone $query;
+        $baseQuery = clone $query;
 
-$totalArsip = $baseQuery->count();
+        $totalArsip = $baseQuery->count();
 
-$totalDisetujui = (clone $query)
-    ->where('status_pengajuan', 'Diterima')
-    ->count();
+        $totalDisetujui = (clone $query)
+            ->where('status_pengajuan', 'Diterima')
+            ->count();
 
-$totalDitolak = (clone $query)
-    ->where('status_pengajuan', 'Ditolak')
-    ->count();
+        $totalDitolak = (clone $query)
+            ->where('status_pengajuan', 'Ditolak')
+            ->count();
 
-$totalSelesai = Pengajuan::where('status_pengajuan', 'Diterima')
+        $totalSelesai = Pengajuan::where('status_pengajuan', 'Diterima')
     ->where('status_penerima', 'Tidak Aktif')
-    ->where(function ($q) {
-
-        $q->whereIn('kategori_bantuan', [
-            'Yatim',
-            'Piatu',
-            'Yatim-Piatu'
-        ])
-
-        ->orWhere(function ($x) {
-
-            $x->where('kategori_bantuan', 'Duafa Anak')
-              ->whereDate('tanggal_lahir', '<=', now()->subYears(18));
-
-        });
-
-    })
     ->count();
 
-$persenDisetujui = $totalArsip
-    ? round(($totalDisetujui / $totalArsip) * 100)
-    : 0;
+        $persenDisetujui = $totalArsip
+            ? round(($totalDisetujui / $totalArsip) * 100)
+            : 0;
 
-$persenDitolak = $totalArsip
-    ? round(($totalDitolak / $totalArsip) * 100)
-    : 0;
+        $persenDitolak = $totalArsip
+            ? round(($totalDitolak / $totalArsip) * 100)
+            : 0;
 
-$persenSelesai = $totalArsip
-    ? round(($totalSelesai / $totalArsip) * 100)
-    : 0;
+        $persenSelesai = $totalArsip
+            ? round(($totalSelesai / $totalArsip) * 100)
+            : 0;
 
         return view(
             'admin.arsippengajuan',
@@ -1256,10 +1238,12 @@ $persenSelesai = $totalArsip
 
         }
 
+        // Ambil semua laporan secara urut dari yang paling lama
         $laporans = $query
-            ->latest()
-            ->paginate(10);
+            ->orderBy('periode', 'asc')
+            ->get();
 
+        $saldoSebelumnya = 0;
         foreach ($laporans as $laporan) {
 
             $tahun = date('Y', strtotime($laporan->periode));
@@ -1268,10 +1252,20 @@ $persenSelesai = $totalArsip
             $awalBulan = Carbon::create($tahun, $bulan, 1)->startOfMonth();
             $akhirBulan = Carbon::create($tahun, $bulan, 1)->endOfMonth();
 
-            $laporan->dana_masuk = Donasi::where('status', 'Terverifikasi')
+            $danaMasuk = Donasi::where('status', 'Terverifikasi')
                 ->whereYear('created_at', $tahun)
                 ->whereMonth('created_at', $bulan)
                 ->sum('nominal');
+
+            $laporan->dana_masuk = $danaMasuk;
+
+            $laporan->saldo_awal = $saldoSebelumnya;
+
+            $laporan->saldo_akhir =
+                $laporan->saldo_awal +
+                $danaMasuk -
+                $laporan->dana_keluar;
+            $saldoSebelumnya = $laporan->saldo_akhir;
 
             $laporan->jumlah_yatim = Pengajuan::where('kategori_bantuan', 'Yatim')
                 ->where('status_penerima', 'Aktif')
@@ -1318,6 +1312,7 @@ $persenSelesai = $totalArsip
                 })
                 ->count();
         }
+        $laporans = $laporans->sortByDesc('periode');
 
         return view(
             'admin.laporan',
@@ -1340,8 +1335,10 @@ $persenSelesai = $totalArsip
         }
 
         $laporans = $query
-            ->latest()
-            ->paginate(10);
+            ->orderBy('periode', 'asc')
+            ->get();
+
+        $saldoSebelumnya = 0;
 
         foreach ($laporans as $laporan) {
 
@@ -1351,9 +1348,12 @@ $persenSelesai = $totalArsip
 
             $akhirTahun = Carbon::create($tahun, 12, 31)->endOfYear();
 
-            $laporan->dana_masuk = Donasi::where('status', 'Terverifikasi')
+            $danaMasuk = Donasi::where('status', 'Terverifikasi')
                 ->whereYear('created_at', $tahun)
                 ->sum('nominal');
+
+            $laporan->dana_masuk = $danaMasuk;
+            $laporan->saldo_awal = $saldoSebelumnya;
 
             $tahun = $laporan->periode;
 
@@ -1362,6 +1362,12 @@ $persenSelesai = $totalArsip
                 'like',
                 $tahun . '-%'
             )->sum('dana_keluar');
+            $laporan->saldo_akhir =
+                $laporan->saldo_awal +
+                $laporan->dana_masuk -
+                $laporan->dana_keluar;
+
+            $saldoSebelumnya = $laporan->saldo_akhir;
 
             $laporan->jumlah_yatim = Pengajuan::where('kategori_bantuan', 'Yatim')
                 ->where('status_penerima', 'Aktif')
@@ -1418,6 +1424,9 @@ $persenSelesai = $totalArsip
                 })
                 ->count();
         }
+        $laporans = $laporans
+            ->sortByDesc('periode')
+            ->values();
 
         return view(
             'admin.laporan-tahunan',
@@ -1440,9 +1449,38 @@ $persenSelesai = $totalArsip
         $path = $request->file('dokumen')
             ->store('laporan-tahunan', 'public');
 
-        \App\Models\LaporanTahunan::create([
+        $tahun = $request->periode;
+
+        $danaMasuk = Donasi::where('status', 'Terverifikasi')
+            ->whereYear('created_at', $tahun)
+            ->sum('nominal');
+
+        $danaKeluar = Laporan::where(
+            'periode',
+            'like',
+            $tahun . '-%'
+        )->sum('dana_keluar');
+
+        $laporanSebelumnya = LaporanTahunan::where(
+            'periode',
+            '<',
+            $tahun
+        )
+            ->orderBy('periode', 'desc')
+            ->first();
+
+        $saldoAwal = $laporanSebelumnya
+            ? $laporanSebelumnya->saldo_akhir
+            : 0;
+
+        $saldoAkhir = $saldoAwal + $danaMasuk - $danaKeluar;
+
+        LaporanTahunan::create([
+            'user_id' => Auth::id(),
 
             'periode' => $request->periode,
+            'saldo_awal' => $saldoAwal,
+            'saldo_akhir' => $saldoAkhir,
 
             'dokumen' => $path,
 
@@ -1501,8 +1539,37 @@ $persenSelesai = $totalArsip
         );
 
         $laporan = LaporanTahunan::findOrFail($id);
+        $tahun = $request->periode;
+
+        $danaMasuk = Donasi::where('status', 'Terverifikasi')
+            ->whereYear('created_at', $tahun)
+            ->sum('nominal');
+
+        $danaKeluar = Laporan::where(
+            'periode',
+            'like',
+            $tahun . '-%'
+        )->sum('dana_keluar');
+
+        $laporanSebelumnya = LaporanTahunan::where(
+            'periode',
+            '<',
+            $tahun
+        )
+            ->where('id', '!=', $laporan->id)
+            ->orderBy('periode', 'desc')
+            ->first();
+
+        $saldoAwal = $laporanSebelumnya
+            ? $laporanSebelumnya->saldo_akhir
+            : 0;
+
+        $saldoAkhir = $saldoAwal + $danaMasuk - $danaKeluar;
 
         $laporan->periode = $request->periode;
+
+        $laporan->saldo_awal = $saldoAwal;
+        $laporan->saldo_akhir = $saldoAkhir;
 
         $laporan->keterangan = $request->keterangan;
 
@@ -1556,6 +1623,12 @@ $persenSelesai = $totalArsip
     {
         $laporan = LaporanTahunan::findOrFail($id);
 
+        if ($laporan->status == 'Published') {
+            return back()->with(
+                'warning',
+                'Laporan sudah dipublish.'
+            );
+        }
         $laporan->status = 'Published';
 
         $laporan->published_at = now();
@@ -1582,15 +1655,20 @@ $persenSelesai = $totalArsip
 
                 ],
 
-                'dana_keluar' => [
+                'dana_yatim' => 'required|numeric|min:0',
+                'bingkisan_yatim' => 'required|numeric|min:0',
 
-                    'required',
+                'dana_piatu' => 'required|numeric|min:0',
+                'bingkisan_piatu' => 'required|numeric|min:0',
 
-                    'numeric',
+                'dana_yatim_piatu' => 'required|numeric|min:0',
+                'bingkisan_yatim_piatu' => 'required|numeric|min:0',
 
-                    'min:0'
+                'dana_duafa_anak' => 'required|numeric|min:0',
+                'bingkisan_duafa_anak' => 'required|numeric|min:0',
 
-                ],
+                'dana_duafa_lansia' => 'required|numeric|min:0',
+                'bingkisan_duafa_lansia' => 'required|numeric|min:0',
 
                 'dokumen' => [
 
@@ -1620,14 +1698,35 @@ $persenSelesai = $totalArsip
                 'periode.unique' =>
                     'Laporan periode tersebut sudah ada.',
 
-                'dana_keluar.required' =>
-                    'Dana keluar wajib diisi.',
+                'dana_yatim.required' => 'Bantuan dana yatim wajib diisi.',
+                'dana_yatim.numeric' => 'Bantuan dana yatim harus berupa angka.',
 
-                'dana_keluar.numeric' =>
-                    'Dana keluar harus berupa angka.',
+                'bingkisan_yatim.required' => 'Bantuan bingkisan yatim wajib diisi.',
+                'bingkisan_yatim.numeric' => 'Bantuan bingkisan yatim harus berupa angka.',
 
-                'dana_keluar.min' =>
-                    'Dana keluar tidak boleh kurang dari 0.',
+                'dana_piatu.required' => 'Bantuan dana piatu wajib diisi.',
+                'dana_piatu.numeric' => 'Bantuan dana piatu harus berupa angka.',
+
+                'bingkisan_piatu.required' => 'Bantuan bingkisan piatu wajib diisi.',
+                'bingkisan_piatu.numeric' => 'Bantuan bingkisan piatu harus berupa angka.',
+
+                'dana_yatim_piatu.required' => 'Bantuan dana yatim-piatu wajib diisi.',
+                'dana_yatim_piatu.numeric' => 'Bantuan dana yatim-piatu harus berupa angka.',
+
+                'bingkisan_yatim_piatu.required' => 'Bantuan bingkisan yatim-piatu wajib diisi.',
+                'bingkisan_yatim_piatu.numeric' => 'Bantuan bingkisan yatim-piatu harus berupa angka.',
+
+                'dana_duafa_anak.required' => 'Bantuan dana duafa anak wajib diisi.',
+                'dana_duafa_anak.numeric' => 'Bantuan dana duafa anak harus berupa angka.',
+
+                'bingkisan_duafa_anak.required' => 'Bantuan bingkisan duafa anak wajib diisi.',
+                'bingkisan_duafa_anak.numeric' => 'Bantuan bingkisan duafa anak harus berupa angka.',
+
+                'dana_duafa_lansia.required' => 'Bantuan dana duafa lansia wajib diisi.',
+                'dana_duafa_lansia.numeric' => 'Bantuan dana duafa lansia harus berupa angka.',
+
+                'bingkisan_duafa_lansia.required' => 'Bantuan bingkisan duafa lansia wajib diisi.',
+                'bingkisan_duafa_lansia.numeric' => 'Bantuan bingkisan duafa lansia harus berupa angka.',
 
                 'dokumen.required' =>
                     'Dokumen wajib diunggah.',
@@ -1715,12 +1814,63 @@ $persenSelesai = $totalArsip
             })
             ->count();
 
+        $danaKeluar =
+            ($jumlahYatim * ($request->dana_yatim + $request->bingkisan_yatim))
+            +
+            ($jumlahPiatu * ($request->dana_piatu + $request->bingkisan_piatu))
+            +
+            ($jumlahYatimPiatu * ($request->dana_yatim_piatu + $request->bingkisan_yatim_piatu))
+            +
+            ($jumlahDuafaAnak * ($request->dana_duafa_anak + $request->bingkisan_duafa_anak))
+            +
+            ($jumlahDuafaLansia * ($request->dana_duafa_lansia + $request->bingkisan_duafa_lansia));
+
+        // Ambil laporan bulan sebelumnya
+        $laporanSebelumnya = Laporan::where('periode', '<', $request->periode)
+            ->orderBy('periode', 'desc')
+            ->first();
+
+        // Saldo awal
+        $saldoAwal = $laporanSebelumnya
+            ? $laporanSebelumnya->saldo_akhir
+            : 0;
+
+        // Saldo akhir
+        $saldoAkhir = $saldoAwal + $danaMasuk - $danaKeluar;
+
         Laporan::create([
+            'user_id' => Auth::id(),
+
             'periode' => $request->periode,
-            'dana_keluar' => $request->dana_keluar,
+            'saldo_awal' => $saldoAwal,
+
+            'dana_masuk' => $danaMasuk,
+
+            'saldo_akhir' => $saldoAkhir,
+
+            'dana_yatim' => $request->dana_yatim,
+            'bingkisan_yatim' => $request->bingkisan_yatim,
+
+            'dana_piatu' => $request->dana_piatu,
+            'bingkisan_piatu' => $request->bingkisan_piatu,
+
+            'dana_yatim_piatu' => $request->dana_yatim_piatu,
+            'bingkisan_yatim_piatu' => $request->bingkisan_yatim_piatu,
+
+            'dana_duafa_anak' => $request->dana_duafa_anak,
+            'bingkisan_duafa_anak' => $request->bingkisan_duafa_anak,
+
+            'dana_duafa_lansia' => $request->dana_duafa_lansia,
+            'bingkisan_duafa_lansia' => $request->bingkisan_duafa_lansia,
+
+            'dana_keluar' => $danaKeluar,
+
             'dokumen' => $path,
+
             'keterangan' => $request->keterangan,
+
             'status' => 'Draft',
+
         ]);
 
         return back()->with(
@@ -1736,10 +1886,15 @@ $persenSelesai = $totalArsip
     {
         $laporan = Laporan::findOrFail($id);
 
+        if ($laporan->status == 'Published') {
+            return back()->with(
+                'warning',
+                'Laporan sudah dipublish.'
+            );
+        }
+
         $laporan->status = 'Published';
-
         $laporan->published_at = now();
-
         $laporan->save();
 
         return back()->with(
@@ -1750,56 +1905,139 @@ $persenSelesai = $totalArsip
 
     public function updateLaporan(Request $request, $id)
     {
-        $request->validate(
+        $request->validate([
 
-            [
+            'periode' => 'required|unique:laporans,periode,' . $id,
 
-                'periode' => [
+            'dana_yatim' => 'required|numeric|min:0',
+            'bingkisan_yatim' => 'required|numeric|min:0',
 
-                    'required',
+            'dana_piatu' => 'required|numeric|min:0',
+            'bingkisan_piatu' => 'required|numeric|min:0',
 
-                    'unique:laporans,periode,' . $id
+            'dana_yatim_piatu' => 'required|numeric|min:0',
+            'bingkisan_yatim_piatu' => 'required|numeric|min:0',
 
-                ],
+            'dana_duafa_anak' => 'required|numeric|min:0',
+            'bingkisan_duafa_anak' => 'required|numeric|min:0',
 
-                'dana_keluar' => [
+            'dana_duafa_lansia' => 'required|numeric|min:0',
+            'bingkisan_duafa_lansia' => 'required|numeric|min:0',
 
-                    'required',
+            'dokumen' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
 
-                    'numeric',
+            'keterangan' => 'nullable|max:500',
 
-                    'min:0'
-
-                ],
-
-                'dokumen' => [
-
-                    'nullable',
-
-                    'mimes:pdf,jpg,jpeg,png',
-
-                    'max:5120'
-
-                ],
-
-                'keterangan' => [
-
-                    'nullable',
-
-                    'max:500'
-
-                ],
-
-            ]
-
-        );
+        ]);
 
         $laporan = Laporan::findOrFail($id);
+        if ($laporan->status == 'Published') {
+            return back()->with(
+                'error',
+                'Laporan yang sudah dipublish tidak dapat diedit.'
+            );
+        }
+
+        $tahun = date('Y', strtotime($request->periode));
+        $bulan = date('m', strtotime($request->periode));
+
+        $awalBulan = Carbon::create($tahun, $bulan, 1)->startOfMonth();
+        $akhirBulan = Carbon::create($tahun, $bulan, 1)->endOfMonth();
+
+        $jumlahYatim = Pengajuan::where('kategori_bantuan', 'Yatim')
+            ->where('status_penerima', 'Aktif')
+            ->where('tanggal_mulai', '<=', $akhirBulan)
+            ->where(function ($q) use ($awalBulan) {
+                $q->whereNull('tanggal_selesai')
+                    ->orWhere('tanggal_selesai', '>=', $awalBulan);
+            })
+            ->count();
+
+        $jumlahPiatu = Pengajuan::where('kategori_bantuan', 'Piatu')
+            ->where('status_penerima', 'Aktif')
+            ->where('tanggal_mulai', '<=', $akhirBulan)
+            ->where(function ($q) use ($awalBulan) {
+                $q->whereNull('tanggal_selesai')
+                    ->orWhere('tanggal_selesai', '>=', $awalBulan);
+            })
+            ->count();
+
+        $jumlahYatimPiatu = Pengajuan::where('kategori_bantuan', 'Yatim-Piatu')
+            ->where('status_penerima', 'Aktif')
+            ->where('tanggal_mulai', '<=', $akhirBulan)
+            ->where(function ($q) use ($awalBulan) {
+                $q->whereNull('tanggal_selesai')
+                    ->orWhere('tanggal_selesai', '>=', $awalBulan);
+            })
+            ->count();
+
+        $jumlahDuafaAnak = Pengajuan::where('kategori_bantuan', 'Duafa Anak')
+            ->where('status_penerima', 'Aktif')
+            ->where('tanggal_mulai', '<=', $akhirBulan)
+            ->where(function ($q) use ($awalBulan) {
+                $q->whereNull('tanggal_selesai')
+                    ->orWhere('tanggal_selesai', '>=', $awalBulan);
+            })
+            ->count();
+
+        $jumlahDuafaLansia = Pengajuan::where('kategori_bantuan', 'Duafa Lansia')
+            ->where('status_penerima', 'Aktif')
+            ->where('tanggal_mulai', '<=', $akhirBulan)
+            ->where(function ($q) use ($awalBulan) {
+                $q->whereNull('tanggal_selesai')
+                    ->orWhere('tanggal_selesai', '>=', $awalBulan);
+            })
+            ->count();
+
+        $danaKeluar =
+            ($jumlahYatim * ($request->dana_yatim + $request->bingkisan_yatim))
+            +
+            ($jumlahPiatu * ($request->dana_piatu + $request->bingkisan_piatu))
+            +
+            ($jumlahYatimPiatu * ($request->dana_yatim_piatu + $request->bingkisan_yatim_piatu))
+            +
+            ($jumlahDuafaAnak * ($request->dana_duafa_anak + $request->bingkisan_duafa_anak))
+            +
+            ($jumlahDuafaLansia * ($request->dana_duafa_lansia + $request->bingkisan_duafa_lansia));
+
+        $laporanSebelumnya = Laporan::where('periode', '<', $request->periode)
+            ->where('id', '!=', $laporan->id)
+            ->orderBy('periode', 'desc')
+            ->first();
+        $danaMasuk = Donasi::where('status', 'Terverifikasi')
+            ->whereYear('created_at', $tahun)
+            ->whereMonth('created_at', $bulan)
+            ->sum('nominal');
+
+        $saldoAwal = $laporanSebelumnya
+            ? $laporanSebelumnya->saldo_akhir
+            : 0;
+
+        $saldoAkhir = $saldoAwal + $danaMasuk - $danaKeluar;
 
         $laporan->periode = $request->periode;
 
-        $laporan->dana_keluar = $request->dana_keluar;
+        $laporan->dana_yatim = $request->dana_yatim;
+        $laporan->bingkisan_yatim = $request->bingkisan_yatim;
 
+        $laporan->dana_piatu = $request->dana_piatu;
+        $laporan->bingkisan_piatu = $request->bingkisan_piatu;
+
+        $laporan->dana_yatim_piatu = $request->dana_yatim_piatu;
+        $laporan->bingkisan_yatim_piatu = $request->bingkisan_yatim_piatu;
+
+        $laporan->dana_duafa_anak = $request->dana_duafa_anak;
+        $laporan->bingkisan_duafa_anak = $request->bingkisan_duafa_anak;
+
+        $laporan->dana_duafa_lansia = $request->dana_duafa_lansia;
+        $laporan->bingkisan_duafa_lansia = $request->bingkisan_duafa_lansia;
+
+        $laporan->dana_keluar = $danaKeluar;
+
+        $laporan->saldo_awal = $saldoAwal;
+        $laporan->dana_masuk = $danaMasuk;
+
+        $laporan->saldo_akhir = $saldoAkhir;
         $laporan->keterangan = $request->keterangan;
 
         if ($request->hasFile('dokumen')) {
@@ -1808,31 +2046,31 @@ $persenSelesai = $totalArsip
                 $laporan->dokumen &&
                 \Storage::disk('public')->exists($laporan->dokumen)
             ) {
-
                 \Storage::disk('public')->delete($laporan->dokumen);
-
             }
 
             $laporan->dokumen = $request
                 ->file('dokumen')
                 ->store('laporan', 'public');
-
         }
 
         $laporan->save();
 
         return back()->with(
-
             'success',
-
             'Laporan berhasil diperbarui.'
-
         );
     }
 
     public function hapusLaporan($id)
     {
         $laporan = Laporan::findOrFail($id);
+        if ($laporan->status == 'Published') {
+            return back()->with(
+                'error',
+                'Laporan yang sudah dipublish tidak dapat dihapus.'
+            );
+        }
 
         // hapus file dokumen
         if (
@@ -1938,11 +2176,11 @@ $persenSelesai = $totalArsip
         */
 
         $files = [
-    'file_kk',
-    'file_sktm',
-    'file_domisili',
-    'file_bukti_rumah',
-];
+            'file_kk',
+            'file_sktm',
+            'file_domisili',
+            'file_bukti_rumah',
+        ];
         foreach ($files as $file) {
 
             $fieldPembaruan = $file . '_pembaruan';
@@ -2005,6 +2243,7 @@ $persenSelesai = $totalArsip
         $pengajuan->tanggal_keputusan = now();
 
         $pengajuan->catatan_admin = null;
+        $pengajuan->tanggal_boleh_ajukan = null;
 
         $pengajuan->save();
 
@@ -2038,11 +2277,14 @@ $persenSelesai = $totalArsip
             );
         }
 
+
         // pembaruan ditolak
+        $pengajuan->status_pengajuan = 'Diterima';
         $pengajuan->status_pembaruan = 'Ditolak';
 
         // bantuan selesai
         $pengajuan->status_penerima = 'Tidak Aktif';
+        
 
         // status utama tetap selesai, bukan aktif lagi
         $pengajuan->tanggal_selesai = now();
@@ -2056,20 +2298,6 @@ $persenSelesai = $totalArsip
 
         // reset proses pembaruan
         $pengajuan->tanggal_pengajuan_pembaruan = null;
-        $files = [
-    'file_kk',
-    'file_sktm',
-    'file_domisili',
-    'file_bukti_rumah',
-];
-
-        foreach ($files as $file) {
-
-            $field = $file . '_pembaruan';
-
-            $pengajuan->$field = null;
-
-        }
 
         $pengajuan->save();
 
@@ -2082,17 +2310,71 @@ $persenSelesai = $totalArsip
             );
     }
 
-    private function resetStatusPembaruan()
+    public function selesaiMeninggal($id)
 {
-    Pengajuan::whereIn('kategori_bantuan', [
+    $pengajuan = Pengajuan::findOrFail($id);
+
+    if ($pengajuan->status_penerima != 'Aktif') {
+
+        return back()->with(
+            'warning',
+            'Bantuan sudah tidak aktif.'
+        );
+
+    }
+
+    $pengajuan->status_pengajuan = 'Diterima';
+
+    $pengajuan->status_penerima = 'Tidak Aktif';
+
+    $pengajuan->tanggal_selesai = now();
+
+    $pengajuan->tanggal_keputusan = now();
+
+    $pengajuan->catatan_admin =
+        'Bantuan dihentikan karena penerima bantuan meninggal dunia.';
+
+    $pengajuan->save();
+
+    return redirect()
+        ->route('admin.arsip')
+        ->with(
+            'success',
+            'Bantuan berhasil diselesaikan dan dipindahkan ke arsip.'
+        );
+}
+
+    private function resetStatusPembaruan()
+    {
+        Pengajuan::whereIn('kategori_bantuan', [
             'Duafa Anak',
             'Duafa Lansia'
         ])
-        ->where('status_penerima', 'Aktif')
-        ->where('status_pembaruan', 'Diterima')
-        ->whereDate('tanggal_pembaruan_dokumen', '<=', now())
-        ->update([
-            'status_pembaruan' => 'Belum'
-        ]);
-}
+            ->where('status_penerima', 'Aktif')
+            ->where('status_pembaruan', 'Diterima')
+            ->whereDate('tanggal_pembaruan_dokumen', '<=', now())
+            ->update([
+                'status_pembaruan' => 'Belum'
+            ]);
+    }
+
+    private function resetPembaruanKadaluarsa()
+    {
+        Pengajuan::whereIn('kategori_bantuan', [
+            'Duafa Anak',
+            'Duafa Lansia'
+        ])
+            ->where('status_penerima', 'Aktif')
+            ->where('status_pembaruan', 'Belum')
+            ->whereDate('tanggal_selesai', '<', today())
+            ->update([
+                'status_pengajuan' => 'Diterima',
+                'status_penerima' => 'Tidak Aktif',
+                'status_pembaruan' => 'Belum',
+                'tanggal_keputusan' => now(),
+                'tanggal_boleh_ajukan' => now()->addDays(30),
+                'catatan_admin' => 'Pembaruan dokumen tidak dikirim sampai batas waktu.'
+            ]);
+
+    }
 }

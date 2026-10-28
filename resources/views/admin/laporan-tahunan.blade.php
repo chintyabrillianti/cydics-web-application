@@ -48,8 +48,10 @@
                         <tr>
 
                             <th>PERIODE</th>
+                            <th>SALDO AWAL</th>
                             <th>DANA MASUK</th>
                             <th>DANA KELUAR</th>
+                            <th>SALDO AKHIR</th>
                             <th>YATIM</th>
                             <th>PIATU</th>
                             <th>YATIM-PIATU</th>
@@ -71,11 +73,21 @@
                                 <td>{{ $laporan->periode }}</td>
 
                                 <td>
+                                    Rp {{ number_format($laporan->saldo_awal, 0, ',', '.') }}
+                                </td>
+
+                                <td>
                                     Rp {{ number_format($laporan->dana_masuk, 0, ',', '.') }}
                                 </td>
 
                                 <td>
                                     Rp {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        Rp {{ number_format($laporan->saldo_akhir, 0, ',', '.') }}
+                                    </strong>
                                 </td>
 
                                 <td>
@@ -124,55 +136,50 @@
 
                                     <div class="action-group">
 
-                                        @if($laporan->status == 'Draft')
+    @if($laporan->status == 'Draft')
 
-                                            <form action="{{ route('admin.laporan.tahunan.publish', $laporan->id) }}" method="POST"
-                                                class="d-inline">
+        <form action="{{ route('admin.laporan.tahunan.publish', $laporan->id) }}"
+            method="POST"
+            class="d-inline">
+            @csrf
 
-                                                @csrf
+            <button type="submit" class="btn-publish">
+                <i class="bi bi-megaphone-fill"></i>
+                Publish
+            </button>
+        </form>
 
-                                                <button type="submit" class="btn-publish">
+        <button type="button"
+            class="btn p-0 border-0 bg-transparent"
+            data-bs-toggle="modal"
+            data-bs-target="#editTahunan{{ $laporan->id }}">
+            <i class="bi bi-pencil-square action-icon"></i>
+        </button>
 
-                                                    <i class="bi bi-megaphone-fill"></i>
+        <form action="{{ route('admin.laporan.tahunan.hapus', $laporan->id) }}"
+            method="POST"
+            class="d-inline"
+            onsubmit="return confirm('Yakin ingin menghapus laporan tahunan ini?')">
+            @csrf
+            @method('DELETE')
 
-                                                    Publish
+            <button type="submit"
+                class="btn p-0 border-0 bg-transparent">
+                <i class="bi bi-trash action-icon"></i>
+            </button>
+        </form>
 
-                                                </button>
+    @endif
 
-                                            </form>
+    {{-- Download selalu boleh --}}
+    <a href="{{ asset('storage/' . $laporan->dokumen) }}"
+        target="_blank"
+        class="btn p-0 border-0 bg-transparent"
+        title="Download">
+        <i class="bi bi-download action-icon"></i>
+    </a>
 
-                                        @endif
-
-                                        <a href="{{ asset('storage/' . $laporan->dokumen) }}" target="_blank"
-                                            class="btn p-0 border-0 bg-transparent" title="Download">
-
-                                            <i class="bi bi-download action-icon"></i>
-
-                                        </a>
-
-                                        <button type="button" class="btn p-0 border-0 bg-transparent" data-bs-toggle="modal"
-                                            data-bs-target="#editTahunan{{ $laporan->id }}">
-
-                                            <i class="bi bi-pencil-square action-icon"></i>
-
-                                        </button>
-
-                                        <form action="{{ route('admin.laporan.tahunan.hapus', $laporan->id) }}" method="POST"
-                                            class="d-inline"
-                                            onsubmit="return confirm('Yakin ingin menghapus laporan tahunan ini?')">
-
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="btn p-0 border-0 bg-transparent">
-
-                                                <i class="bi bi-trash action-icon"></i>
-
-                                            </button>
-
-                                        </form>
-
-                                    </div>
+</div>
 
                                 </td>
 
@@ -182,7 +189,7 @@
 
                             <tr>
 
-                                <td colspan="10" class="text-center">
+                                <td colspan="12" class="text-center">
 
                                     Belum ada laporan tahunan.
 

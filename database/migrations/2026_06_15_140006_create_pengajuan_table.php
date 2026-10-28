@@ -13,9 +13,14 @@ return new class extends Migration
 {
     Schema::create('pengajuan', function (Blueprint $table) {
 
-        $table->id();
+        $table->increments('id');
 
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->unsignedInteger('user_id');
+
+$table->foreign('user_id')
+      ->references('id')
+      ->on('users')
+      ->onDelete('cascade');
 
         $table->string('kategori_bantuan');
 

@@ -783,7 +783,67 @@ Konfirmasi Password <span class="text-danger">*</span>
 
 </div>
 
+<!-- Modal Konfirmasi Verifikasi -->
+<div class="modal fade"
+     id="modalKonfirmasiVerifikasi"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Konfirmasi Verifikasi
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                Apakah nominal yang dimasukkan sebesar
+                <strong id="konfirmasiNominal"></strong>
+                sudah sesuai?
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Tidak
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-success"
+                    id="btnKonfirmasiSesuai">
+
+                    Ya, Sesuai
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
     <script>
+        
 const panelFoto = document.getElementById('panelFoto');
 panelFoto.classList.add('d-none');
 panelFoto.src = '';
@@ -797,6 +857,13 @@ const formVerifikasi = document.getElementById('formVerifikasi');
 const warningPanel = document.getElementById('warningPanel');
 const warningNominal = document.getElementById('warningNominal');
 const btnVerifikasi = document.getElementById('btnVerifikasi');
+let modalKonfirmasi;
+
+const konfirmasiNominal =
+    document.getElementById('konfirmasiNominal');
+
+const btnKonfirmasiSesuai =
+    document.getElementById('btnKonfirmasiSesuai');
 const previewBukti = document.getElementById('previewBukti');
 
 let dipilih = false;
@@ -859,6 +926,7 @@ panelFoto.classList.remove('d-none');
         formVerifikasi.action = this.dataset.url;
 
         dipilih = true;
+        btnKonfirmasiSesuai.disabled = false;
 
 warningPanel.classList.add('d-none');
 warningNominal.classList.add('d-none');
@@ -866,17 +934,17 @@ warningNominal.classList.add('d-none');
     });
 
 });
-formVerifikasi.addEventListener('submit',function(e){
+formVerifikasi.addEventListener('submit', function(e){
+
+    e.preventDefault();
 
     warningPanel.classList.add('d-none');
     warningNominal.classList.add('d-none');
 
     if(!dipilih){
 
-        e.preventDefault();
-
         warningPanel.innerHTML =
-        'Silakan pilih salah satu donasi terlebih dahulu.';
+            'Silakan pilih salah satu donasi terlebih dahulu.';
 
         warningPanel.classList.remove('d-none');
 
@@ -885,17 +953,40 @@ formVerifikasi.addEventListener('submit',function(e){
 
     if(panelNominal.value == ''){
 
-        e.preventDefault();
-
         warningNominal.innerHTML =
-        'Nominal transfer wajib diisi.';
+            'Nominal transfer wajib diisi.';
 
         warningNominal.classList.remove('d-none');
 
         return;
     }
 
+    const nominal = Number(panelNominal.value);
+
+    konfirmasiNominal.innerHTML =
+        'Rp ' + nominal.toLocaleString('id-ID');
+
+    modalKonfirmasi.show();
+
 });
+
+btnKonfirmasiSesuai.addEventListener('click', function(){
+
+    btnKonfirmasiSesuai.disabled = true;
+
+    modalKonfirmasi.hide();
+
+    formVerifikasi.submit();
+
+});
+
+window.onload = function(){
+
+    modalKonfirmasi = new bootstrap.Modal(
+        document.getElementById('modalKonfirmasiVerifikasi')
+    );
+
+}
 
 </script>
 

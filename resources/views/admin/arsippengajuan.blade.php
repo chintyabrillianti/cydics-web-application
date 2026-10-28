@@ -257,7 +257,8 @@ onerror="this.onerror=null;this.src='{{ asset('images/default-profile.png') }}';
 </td>
 
     <td>
-    @if($item->status_pembaruan == 'Ditolak')
+
+@if($item->status_pembaruan == 'Ditolak')
 
     <span class="badge-status danger">
         ● Pembaruan Ditolak
@@ -266,39 +267,30 @@ onerror="this.onerror=null;this.src='{{ asset('images/default-profile.png') }}';
 @elseif(
 
     $item->status_pengajuan == 'Diterima'
-
-&&
-
-$item->status_penerima == 'Tidak Aktif'
-
-&&
-
-(
-
-        in_array($item->kategori_bantuan,[
-            'Yatim',
-            'Piatu',
-            'Yatim-Piatu'
-        ])
-
-        ||
-
-        (
-
-            $item->kategori_bantuan == 'Duafa Anak'
-
-            &&
-
-            \Carbon\Carbon::parse($item->tanggal_lahir)->age >= 18
-
-        )
-
+    &&
+    $item->status_penerima == 'Tidak Aktif'
+    &&
+    str_contains(
+        strtolower($item->catatan_admin ?? ''),
+        'meninggal'
     )
 
 )
 
     <span class="badge-status warning">
-        ● Selesai
+        ● Selesai (Meninggal)
+    </span>
+
+@elseif(
+
+    $item->status_pengajuan == 'Diterima'
+    &&
+    $item->status_penerima == 'Tidak Aktif'
+
+)
+
+    <span class="badge-status warning">
+        ● Selesai (Usia)
     </span>
 
 @elseif($item->status_pengajuan == 'Ditolak')
@@ -314,7 +306,8 @@ $item->status_penerima == 'Tidak Aktif'
     </span>
 
 @endif
-    </td>
+
+</td>
 
     <td>
 
@@ -325,41 +318,27 @@ $item->status_penerima == 'Tidak Aktif'
 @elseif(
 
     $item->status_pengajuan == 'Diterima'
-
     &&
-
     $item->status_penerima == 'Tidak Aktif'
     &&
-
-    (
-
-        in_array($item->kategori_bantuan,[
-            'Yatim',
-            'Piatu',
-            'Yatim-Piatu'
-        ])
-
-        ||
-
-        (
-
-            $item->kategori_bantuan=='Duafa Anak'
-
-            &&
-
-            \Carbon\Carbon::parse($item->tanggal_lahir)->age >= 18
-
-        )
-
+    str_contains(
+        strtolower($item->catatan_admin ?? ''),
+        'meninggal'
     )
 
 )
 
-    Bantuan telah selesai.
+    Bantuan dihentikan karena penerima meninggal dunia.
 
-    @if($item->catatan_admin)
-        {{ $item->catatan_admin }}
-    @endif
+@elseif(
+
+    $item->status_pengajuan == 'Diterima'
+    &&
+    $item->status_penerima == 'Tidak Aktif'
+
+)
+
+    Bantuan berakhir karena batas usia penerima telah terpenuhi.
 
 @elseif($item->status_pengajuan == 'Ditolak')
 
@@ -589,7 +568,7 @@ Status Penerima
 
     <td>
 
-        @if($item->status_pembaruan == 'Ditolak')
+@if($item->status_pembaruan == 'Ditolak')
 
     <span class="badge-status danger">
         ● Pembaruan Ditolak
@@ -598,39 +577,30 @@ Status Penerima
 @elseif(
 
     $item->status_pengajuan == 'Diterima'
-
-&&
-
-$item->status_penerima == 'Tidak Aktif'
-&&
-
-    (
-
-        in_array($item->kategori_bantuan,[
-            'Yatim',
-            'Piatu',
-            'Yatim-Piatu'
-        ])
-
-        ||
-
-        (
-
-            $item->kategori_bantuan=='Duafa Anak'
-
-            &&
-
-            \Carbon\Carbon::parse($item->tanggal_lahir)
-                ->age >= 18
-
-        )
-
+    &&
+    $item->status_penerima == 'Tidak Aktif'
+    &&
+    str_contains(
+        strtolower($item->catatan_admin ?? ''),
+        'meninggal'
     )
 
 )
 
     <span class="badge-status warning">
-        ● Selesai
+        ● Selesai (Meninggal)
+    </span>
+
+@elseif(
+
+    $item->status_pengajuan == 'Diterima'
+    &&
+    $item->status_penerima == 'Tidak Aktif'
+
+)
+
+    <span class="badge-status warning">
+        ● Selesai (Usia)
     </span>
 
 @elseif($item->status_pengajuan == 'Ditolak')
@@ -647,7 +617,7 @@ $item->status_penerima == 'Tidak Aktif'
 
 @endif
 
-    </td>
+</td>
 
 </tr>
 

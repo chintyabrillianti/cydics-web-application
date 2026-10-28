@@ -161,30 +161,38 @@
 
                                                         <td>
 
-                                                            @if($item->status_pembaruan && $item->status_pembaruan != 'Belum')
+                                                            @if(
+    in_array($item->kategori_bantuan,['Duafa Anak','Duafa Lansia'])
+    && in_array($item->status_pembaruan,['Menunggu','Diterima','Ditolak'])
+)
 
-                                                                <span class="badge bg-info">
-                                                                    Pembaruan Dokumen
-                                                                </span>
+    Pembaruan Dokumen
 
-                                                            @elseif($item->kategori_sebelumnya)
+@elseif($item->kategori_sebelumnya)
 
-                                                                <span class="badge bg-warning text-dark">
-                                                                    Perubahan Kategori
-                                                                </span>
+    Perubahan Kategori
 
-                                                            @else
+@else
 
-                                                                <span class="badge bg-success">
-                                                                    Pengajuan Baru
-                                                                </span>
+    Pengajuan Baru
 
-                                                            @endif
-
+@endif
                                                         </td>
 
                                                         <td>
-                                                            {{ $item->created_at->translatedFormat('d F Y') }}
+
+                                                            @if(
+    in_array($item->kategori_bantuan,['Duafa Anak','Duafa Lansia'])
+    && in_array($item->status_pembaruan,['Menunggu','Diterima','Ditolak'])
+)
+    {{ \Carbon\Carbon::parse($item->tanggal_pengajuan_pembaruan)->translatedFormat('d F Y') }}
+
+@else
+
+    {{ $item->created_at->translatedFormat('d F Y') }}
+
+@endif
+
                                                         </td>
 
                                                         <td>
@@ -193,12 +201,6 @@
 
                                                                 <span class="text-info">
                                                                     ● Menunggu Verifikasi Pembaruan
-                                                                </span>
-
-                                                            @elseif($item->status_pembaruan == 'Perbaikan')
-
-                                                                <span class="text-primary">
-                                                                    ● Perbaikan Pembaruan
                                                                 </span>
 
                                                             @elseif($item->status_pembaruan == 'Ditolak')
@@ -284,19 +286,18 @@
                             <div class="d-flex justify-content-between align-items-start">
 
                                 <div>
-                                    @if($detail->status_pembaruan == 'Menunggu')
+                                    @if(
+    in_array($detail->kategori_bantuan, ['Duafa Anak','Duafa Lansia'])
+    && $detail->status_pembaruan != 'Belum'
+)
 
-                                        <h4>
-                                            Detail Pembaruan Dokumen
-                                        </h4>
+    <h4>Detail Pembaruan Dokumen</h4>
 
-                                    @else
+@else
 
-                                        <h4>
-                                            Detail Pengajuan
-                                        </h4>
+    <h4>Detail Pengajuan</h4>
 
-                                    @endif
+@endif
 
                                     <small>
                                         {{ $detail->nama_lengkap }}
@@ -326,7 +327,7 @@
                             </div>
 
                             <div class="detail-label">
-                                Domisili di Deparis Residence
+                                Alamat KK di Deparis Residence
                             </div>
 
                             <div class="detail-value">
@@ -404,12 +405,30 @@
                                     <strong>Pembaruan dokumen ditolak.</strong><br>
                                     Bantuan dinonaktifkan.
                                 </div>
+                                @if($detail->status_pembaruan == 'Ditolak' && $detail->catatan_admin)
+
+                                    <div class="detail-label mt-3">
+                                        Alasan Penolakan
+                                    </div>
+
+                                    <div class="detail-value text-danger">
+                                        {{ $detail->catatan_admin }}
+                                    </div>
+
+                                @endif
 
                             @elseif($detail->status_pembaruan == 'Diterima')
 
                                 <div class="alert alert-success mt-3">
                                     <strong>Pembaruan dokumen telah diterima.</strong><br>
                                     Masa bantuan berhasil diperpanjang 6 bulan.
+                                </div>
+                                <div class="detail-label mt-3">
+                                    Tanggal Pembaruan
+                                </div>
+
+                                <div class="detail-value">
+                                    {{ \Carbon\Carbon::parse($detail->tanggal_pengajuan_pembaruan)->translatedFormat('d F Y') }}
                                 </div>
 
                             @elseif($detail->status_pengajuan == 'Diterima' && $detail->status_pembaruan == 'Belum')
@@ -465,11 +484,13 @@
                                 Dokumen
                             </div>
 
-                            @if($detail->status_pembaruan == 'Menunggu')
+                            @if(
+    in_array($detail->status_pembaruan,['Menunggu','Diterima'])
+)
 
-                                {{-- =========================
-                                DOKUMEN PEMBARUAN
-                                ========================= --}}
+    {{-- =========================
+    DOKUMEN PEMBARUAN
+    ========================= --}}
 
                                 @if($detail->file_kk_pembaruan)
 
@@ -578,8 +599,16 @@
                                     </div>
 
                                 @endif
-
                             @else
+
+@if($detail->status_pembaruan == 'Ditolak')
+
+<div class="alert alert-warning mb-3">
+    <strong>Dokumen Pengajuan Awal</strong><br>
+    Dokumen pembaruan ditolak sehingga yang ditampilkan adalah dokumen pengajuan sebelumnya.
+</div>
+
+@endif
                                 @php
 
                                     function dokumenPerbaikan(
@@ -1844,6 +1873,23 @@
                                         </button>
 
                                     </form>
+                                @endif
+                                @if(
+                                        $detail->status_pengajuan == 'Diterima' &&
+                                        $detail->status_penerima == 'Aktif'
+                                    )
+
+                                    <form action="{{ route('admin.pengajuan.selesai.meninggal', $detail->id) }}" method="POST" class="mt-3"
+                                        onsubmit="return confirm('Yakin penerima bantuan telah meninggal dunia? Bantuan akan diselesaikan dan dipindahkan ke arsip.');">
+
+                                        @csrf
+
+                                        <button class="btn btn-dark w-100">
+                                            Bantuan Selesai (Meninggal)
+                                        </button>
+
+                                    </form>
+
                                 @endif
 
                             @endif

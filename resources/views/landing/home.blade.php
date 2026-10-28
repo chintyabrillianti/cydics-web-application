@@ -104,7 +104,7 @@
 
 <section class="position-relative overflow-hidden" style="
     min-height:650px;
-    background:url('{{ asset('storage/' . $website->banner) }}');
+    background:url('{{ $website && $website->banner ? asset('storage/' . $website->banner) : '' }}');
     background-size:cover;
     background-position:center;">
 
@@ -1090,7 +1090,7 @@ flex-wrap">
 
             <div class="d-flex gap-3 mb-3">
 
-                @if($website->instagram)
+                @if($website?->instagram)
                             <a href="{{ $website->instagram }}" target="_blank" class="text-decoration-none">
 
                                 <i class="bi bi-instagram" style="
@@ -1102,7 +1102,7 @@ flex-wrap">
                             </a>
                 @endif
 
-                @if($website->youtube)
+                @if($website?->youtube)
                             <a href="{{ $website->youtube }}" target="_blank" class="text-decoration-none">
 
                                 <i class="bi bi-youtube" style="

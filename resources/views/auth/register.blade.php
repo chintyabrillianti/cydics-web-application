@@ -177,6 +177,15 @@
             border-color: #c7d2e0;
 
         }
+        .btn-register:disabled{
+
+    background:#bfc7d8;
+
+    cursor:not-allowed;
+
+    opacity:.8;
+
+}
     </style>
 
 </head>
@@ -393,6 +402,7 @@ required>
                     </div>
 
                 </div>
+                
                 <div class="robot-box mb-4">
 
     <div>
@@ -400,21 +410,18 @@ required>
         <div class="form-check">
 
             <input
-            class="form-check-input"
-            type="checkbox"
-            name="captcha"
-            id="robotCheck"
-            value="1"
-            {{ old('captcha') ? 'checked' : '' }}>
+                class="form-check-input"
+                type="checkbox"
+                name="captcha"
+                id="robotCheck"
+                value="1"
+                {{ old('captcha') ? 'checked' : '' }}>
 
-            <label
-            class="form-check-label"
-            for="robotCheck">
+            <label class="form-check-label" for="robotCheck">
                 Saya bukan robot
             </label>
 
         </div>
-
         @error('captcha')
             <small class="text-danger">
                 {{ $message }}
@@ -429,7 +436,11 @@ required>
 
 </div>
 
-                <button type="submit" class="btn-register mb-3">
+                <button
+    type="submit"
+    id="registerBtn"
+    class="btn-register mb-3"
+    disabled>
 
                     Daftar Sekarang
                     <i class="bi bi-arrow-right ms-1"></i>
@@ -450,6 +461,27 @@ required>
                     </small>
 
                 </div>
+                <div class="form-check mb-3">
+
+    <input
+        class="form-check-input"
+        type="checkbox"
+        id="agreeTerms">
+
+    <label class="form-check-label" for="agreeTerms">
+
+        Saya telah membaca dan menyetujui
+        <a href="{{ route('terms') }}"
+           target="_blank"
+           class="fw-semibold text-decoration-none">
+
+            Syarat & Ketentuan
+
+        </a>
+
+    </label>
+
+</div>
             </form>
 
         </div>
@@ -497,8 +529,30 @@ nameInput.addEventListener('input', function () {
 phone.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').slice(0,13);
 });
-document.querySelector('form').addEventListener('submit', function (e) {
+const agreeTerms = document.getElementById('agreeTerms');
+const robotCheck = document.getElementById('robotCheck');
+const registerBtn = document.getElementById('registerBtn');
 
+function checkRegisterButton() {
+
+    registerBtn.disabled = !(agreeTerms.checked && robotCheck.checked);
+
+}
+
+agreeTerms.addEventListener('change', checkRegisterButton);
+robotCheck.addEventListener('change', checkRegisterButton);
+
+checkRegisterButton();
+document.querySelector('form').addEventListener('submit', function (e) {
+if (!agreeTerms.checked || !robotCheck.checked) {
+
+    alert('Silakan centang "Saya bukan robot" dan setujui Syarat & Ketentuan terlebih dahulu.');
+
+    e.preventDefault();
+
+    return;
+
+}
     const nama = document.querySelector('[name="name"]').value.trim();
     const phone = document.querySelector('[name="phone"]').value.trim();
     const password = document.querySelector('[name="password"]').value;

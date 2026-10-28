@@ -25,7 +25,56 @@
                 </strong>
             </p>
 
+            @if($wajibUpdate && !$lewatDeadline)
+
+<p class="text-danger mb-3">
+    Batas akhir pembaruan dokumen:
+    <strong>
+        {{ \Carbon\Carbon::parse($pengajuan->tanggal_selesai)->translatedFormat('d F Y') }}
+    </strong>
+</p>
+
+@endif
+
             <hr>
+            @if(!$wajibUpdate)
+
+    <div class="alert alert-info">
+        Jadwal pembaruan dokumen belum dimulai.
+    </div>
+
+@elseif($pengajuan->status_pembaruan == 'Menunggu')
+
+    <div class="alert alert-warning">
+        Dokumen pembaruan telah dikirim dan sedang menunggu verifikasi admin.
+    </div>
+
+@elseif($lewatDeadline)
+
+    <div class="alert alert-danger">
+        Masa pembaruan dokumen telah berakhir.
+    </div>
+   
+@elseif($pengajuan->status_pembaruan == 'Ditolak')
+
+<div class="alert alert-danger">
+    Pembaruan dokumen ditolak oleh admin.
+</div>
+
+@if($pengajuan->catatan_admin)
+<div class="alert alert-light border">
+    <strong>Catatan Admin :</strong><br>
+    {{ $pengajuan->catatan_admin }}
+</div>
+
+@elseif($pengajuan->status_pembaruan == 'Diterima')
+
+<div class="alert alert-success">
+    Dokumen pembaruan telah disetujui. Jadwal pembaruan berikutnya akan tersedia pada periode selanjutnya.
+</div>
+@endif
+
+@else
 
             <form action="{{ route('pembaruan.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
@@ -158,6 +207,7 @@
                     Kirim Pembaruan Dokumen
                 </button>
             </form>
+            @endif
 
         </div>
 

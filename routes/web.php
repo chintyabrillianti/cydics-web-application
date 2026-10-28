@@ -13,7 +13,7 @@ use App\Http\Controllers\Auth\PasswordController;
 Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware('auth')
+    ->middleware(['auth', 'warga'])
     ->name('dashboard');
 
 Route::get(
@@ -237,6 +237,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
         [AdminController::class, 'tolakPembaruan']
     )->name('admin.pembaruan.tolak');
 
+    Route::post(
+    '/admin/pengajuan/{id}/selesai-meninggal',
+    [AdminController::class, 'selesaiMeninggal']
+)->name('admin.pengajuan.selesai.meninggal');
+
     Route::get(
         '/admin/kegiatan',
         [AdminController::class, 'semuaKegiatan']
@@ -395,6 +400,7 @@ Route::middleware([
     )->name('donatur.password.update');
 
 });
-
+    Route::view('/syarat-ketentuan-registrasi', 'auth.terms')
+    ->name('terms');
 
 require __DIR__ . '/auth.php';

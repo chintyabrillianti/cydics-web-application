@@ -93,18 +93,18 @@
                 <thead>
 
                     <tr>
-
-                        <th>Tahun</th>
-                        <th>Dana Masuk</th>
-                        <th>Dana Keluar</th>
-                        <th>Yatim</th>
-                        <th>Piatu</th>
-                        <th>Yatim Piatu</th>
-                        <th>Duafa Anak</th>
-                        <th>Duafa Lansia</th>
-                        <th>Aksi</th>
-
-                    </tr>
+    <th>Tahun</th>
+    <th>Saldo Awal</th>
+    <th>Dana Masuk</th>
+    <th>Dana Keluar</th>
+    <th>Saldo Akhir</th>
+    <th>Yatim</th>
+    <th>Piatu</th>
+    <th>Yatim Piatu</th>
+    <th>Duafa Anak</th>
+    <th>Duafa Lansia</th>
+    <th>Aksi</th>
+</tr>
 
                 </thead>
 
@@ -114,83 +114,117 @@
 
                         <tr>
 
-                            <td>
+    <td>
 
-                                <div class="periode-box">
+        <div class="periode-box">
 
-                                    <strong>
+            <strong>{{ $laporan->periode }}</strong>
 
-                                        {{ $laporan->periode }}
+            <span>Tahun</span>
 
-                                    </strong>
+        </div>
 
-                                    <span>Tahun</span>
+    </td>
 
-                                </div>
+    {{-- Saldo Awal --}}
+    <td>
 
-                            </td>
+        <div class="uang-masuk">
 
-                            <td>
+            Rp
 
-                                <div class="uang-masuk">
+            <strong>
 
-                                    Rp
+                {{ number_format($laporan->saldo_awal, 0, ',', '.') }}
 
-                                    <strong>
+            </strong>
 
-                                        {{ number_format($laporan->dana_masuk, 0, ',', '.') }}
+        </div>
 
-                                    </strong>
+    </td>
 
-                                </div>
+    {{-- Dana Masuk --}}
+    <td>
 
-                            </td>
+        <div class="uang-masuk">
 
-                            <td>
+            Rp
 
-                                <div class="uang-keluar">
+            <strong>
 
-                                    Rp
+                {{ number_format($laporan->dana_masuk, 0, ',', '.') }}
 
-                                    <strong>
+            </strong>
 
-                                        {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
+        </div>
 
-                                    </strong>
+    </td>
 
-                                </div>
+    {{-- Dana Keluar --}}
+    <td>
 
-                            </td>
+        <div class="uang-keluar">
 
-                            <td>{{ $laporan->jumlah_yatim }}</td>
+            Rp
 
-                            <td>{{ $laporan->jumlah_piatu }}</td>
+            <strong>
 
-                            <td>{{ $laporan->jumlah_yatim_piatu }}</td>
+                {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
 
-                            <td>{{ $laporan->jumlah_duafa_anak }}</td>
+            </strong>
 
-                            <td>{{ $laporan->jumlah_duafa_lansia }}</td>
+        </div>
 
-                            <td>
+    </td>
 
-                                <a href="{{ asset('storage/' . $laporan->dokumen) }}" class="btn-download" download>
+    {{-- Saldo Akhir --}}
+    <td>
 
-                                    <i class="bi bi-download"></i>
+        <div class="uang-masuk">
 
-                                    Download
+            Rp
 
-                                </a>
+            <strong>
 
-                            </td>
+                {{ number_format($laporan->saldo_akhir, 0, ',', '.') }}
 
-                        </tr>
+            </strong>
+
+        </div>
+
+    </td>
+
+    <td>{{ $laporan->jumlah_yatim }}</td>
+
+    <td>{{ $laporan->jumlah_piatu }}</td>
+
+    <td>{{ $laporan->jumlah_yatim_piatu }}</td>
+
+    <td>{{ $laporan->jumlah_duafa_anak }}</td>
+
+    <td>{{ $laporan->jumlah_duafa_lansia }}</td>
+
+    <td>
+
+        <a href="{{ asset('storage/' . $laporan->dokumen) }}"
+            class="btn-download"
+            download>
+
+            <i class="bi bi-download"></i>
+
+            Download
+
+        </a>
+
+    </td>
+
+</tr>
 
                     @empty
 
                         <tr>
 
-                            <td colspan="9" class="text-center">
+                            <td colspan="11" class="text-center">
 
                                 Belum ada laporan.
 

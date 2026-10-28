@@ -12,14 +12,14 @@ return new class extends Migration {
     {
         Schema::create('donasis', function (Blueprint $table) {
 
-            $table->id();
+            $table->increments('id');
 
             // Donatur yang mengirim bukti
-            $table->foreignId('user_id')
+            $table->unsignedInteger('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->foreignId('program_id')
+            $table->unsignedInteger('program_id')
                 ->constrained()
                 ->cascadeOnDelete();
 

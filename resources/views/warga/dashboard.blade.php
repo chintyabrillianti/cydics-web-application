@@ -90,19 +90,59 @@
             </p>
 
             <p>
-                Status:
-                Menunggu Verifikasi Admin
-            </p>
+    Status:
+    Menunggu Verifikasi Admin
+</p>
 
-            <p>
-                Silakan buka kembali aplikasi dalam 1–2 hari kerja.
-            </p>
+<p>
+    Silakan buka kembali aplikasi dalam <strong>1–2 hari kerja</strong>.
+</p>
 
-        </div>
+<hr>
+
+            <hr>
+
+<div class="mt-3">
+
+    <h6 class="fw-bold mb-2">
+        <i class="bi bi-headset"></i>
+        Hubungi Admin
+    </h6>
+
+    <p class="mb-2">
+        Jika terdapat pertanyaan mengenai proses verifikasi,
+        silakan hubungi admin Yayasan.
+    </p>
+
+    @if($website && $website->telepon)
+
+        @php
+            $wa = preg_replace('/^0/', '62', $website->telepon);
+        @endphp
+
+        <p class="mb-2">
+            Nomor Admin:
+            <strong>{{ $website->telepon }}</strong>
+        </p>
+
+        <a href="https://wa.me/{{ $wa }}"
+           target="_blank"
+           class="btn btn-success">
+
+            <i class="bi bi-whatsapp"></i>
+            WhatsApp Admin
+
+        </a>
 
     @endif
 
-    {{-- PERBAIKAN --}}
+</div>
+
+</div>
+
+@endif
+
+{{-- PERBAIKAN --}}
     @if(
 
             ($pengajuanBaru && $pengajuanBaru->status_pengajuan == 'Perbaikan')
@@ -354,6 +394,42 @@
 
 @endif
 
+@if(
+    $pengajuan &&
+    $pengajuan->status_pembaruan == 'Diterima'
+)
+
+<div class="dashboard-card info-success">
+
+    <h5>
+        <i class="bi bi-check-circle-fill"></i>
+        Pembaruan Dokumen Berhasil
+    </h5>
+
+    <p>
+    Dokumen pembaruan telah diverifikasi dan diterima oleh admin.
+</p>
+
+<p>
+    Masa bantuan berhasil diperpanjang selama 6 bulan.
+</p>
+
+<p>
+    Jadwal pembaruan dokumen berikutnya akan tersedia sesuai periode selanjutnya.
+</p>
+
+<p>
+    Berlaku sampai :
+
+    <strong>
+        {{ \Carbon\Carbon::parse($pengajuan->tanggal_selesai)->translatedFormat('d F Y') }}
+    </strong>
+</p>
+
+</div>
+
+@endif
+
 @if($pembaruanDitolak && now()->lt(\Carbon\Carbon::parse($pembaruanDitolak->tanggal_boleh_ajukan)))
 
 <div class="dashboard-card info-danger">
@@ -497,6 +573,38 @@
     </div>
 
 @endif
+    @if(
+    !$pengajuan &&
+    $riwayat->isNotEmpty() &&
+    $riwayat->first()->status_penerima == 'Tidak Aktif' &&
+    $riwayat->first()->status_pengajuan == 'Diterima' &&
+    $riwayat->first()->status_pembaruan == 'Belum'
+)
+
+<div class="dashboard-card info-dark">
+
+    <h5>
+        <i class="bi bi-info-circle-fill"></i>
+        Bantuan Telah Selesai
+    </h5>
+
+    <div class="alert alert-secondary mt-3">
+
+        <p>
+            Bantuan telah dinyatakan selesai.
+        </p>
+
+        <p>
+            <strong>Alasan :</strong><br>
+            {{ $riwayat->first()->catatan_admin }}
+        </p>
+
+    </div>
+
+</div>
+
+@endif
+
 
     {{-- PERUBAHAN KATEGORI --}}
     @if(
@@ -541,29 +649,12 @@
                     </a>
 
                     {{-- YATIM PIATU --}}
-                @elseif($pengajuan->kategori_bantuan == 'Yatim-Piatu')
+                {{-- YATIM PIATU --}}
+@elseif($pengajuan->kategori_bantuan == 'Yatim-Piatu')
 
-                    @if($sisaTungguPerubahan)
-
-                        <div class="text-danger fw-semibold">
-
-                            Tunggu {{ $sisaTungguPerubahan }} hari lagi
-
-                            <br>
-
-                            <small class="text-muted">
-                                Dapat mengajukan kembali:
-                                {{ $tanggalPerubahan }}
-                            </small>
-
-                        </div>
-
-                    @else
-                        <div class="text-muted mt-2">
-                            Tidak ada perubahan kategori yang tersedia.
-                        </div>
-
-                    @endif
+<div class="text-muted mt-2">
+    Tidak ada perubahan kategori yang tersedia.
+</div>
 
                     {{-- DUAFA ANAK --}}
                 @elseif($pengajuan->kategori_bantuan == 'Duafa Anak')
@@ -604,6 +695,42 @@
         </div>
 
     @endif
+    
+
+    @if(
+    $pengajuan &&
+    $pengajuan->status_penerima == 'Tidak Aktif' &&
+    $pengajuan->status_pengajuan == 'Diterima' &&
+    $pengajuan->status_pembaruan == 'Belum'
+)
+
+<div class="dashboard-card info-secondary">
+
+    <h5>
+        <i class="bi bi-check-circle-fill"></i>
+        Bantuan Telah Selesai
+    </h5>
+
+    <div class="alert alert-secondary mt-3">
+
+        <p>
+            Program bantuan telah selesai karena masa penerimaan bantuan telah berakhir sesuai ketentuan yayasan.
+        </p>
+
+        <p>
+            Status bantuan Anda saat ini sudah dinyatakan selesai.
+        </p>
+
+        <p>
+            Apabila di kemudian hari memenuhi persyaratan kategori bantuan lainnya,
+            Anda dapat mengajukan bantuan kembali.
+        </p>
+
+    </div>
+
+</div>
+
+@endif
 
     <div class="dashboard-card">
 
@@ -641,13 +768,13 @@
                                 @if($item->status_pembaruan == 'Menunggu')
 
     <span class="status-badge waiting">
-        Pembaruan
+        Menunggu Pembaruan
     </span>
 
-    @elseif($item->status_pembaruan == 'Diterima')
+@elseif($item->status_pembaruan == 'Diterima')
 
     <span class="status-badge active">
-        Aktif
+        Pembaruan Diterima
     </span>
 
 @elseif($item->status_pembaruan == 'Ditolak')

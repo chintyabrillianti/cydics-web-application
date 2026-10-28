@@ -48,8 +48,10 @@
                         <tr>
 
                             <th>PERIODE</th>
-                            <th>DANA MASUK</th>
-                            <th>DANA KELUAR</th>
+                            <th>Saldo Awal</th>
+                            <th>Dana Masuk</th>
+                            <th>Dana Keluar</th>
+                            <th>Saldo Akhir</th>
                             <th>YATIM</th>
                             <th>PIATU</th>
                             <th>YATIM-PIATU</th>
@@ -68,37 +70,37 @@
 
                             <tr>
 
-                                <td>
-                                    {{ \Carbon\Carbon::parse($laporan->periode . '-01')->translatedFormat('F Y') }}
-                                </td>
+<td>
+    {{ \Carbon\Carbon::parse($laporan->periode.'-01')->translatedFormat('F Y') }}
+</td>
 
-                                <td>
-                                    Rp {{ number_format($laporan->dana_masuk,0,',','.') }}
-                                </td>
+<td>
+    Rp {{ number_format($laporan->saldo_awal,0,',','.') }}
+</td>
 
-                                <td>
-                                    Rp {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
-                                </td>
+<td>
+    Rp {{ number_format($laporan->dana_masuk,0,',','.') }}
+</td>
 
-                                <td>
-                                    {{ $laporan->jumlah_yatim }}
-                                </td>
+<td>
+    Rp {{ number_format($laporan->dana_keluar,0,',','.') }}
+</td>
 
-                                <td>
-                                    {{ $laporan->jumlah_piatu }}
-                                </td>
+<td>
+    <strong>
+        Rp {{ number_format($laporan->saldo_akhir,0,',','.') }}
+    </strong>
+</td>
 
-                                <td>
-                                    {{ $laporan->jumlah_yatim_piatu }}
-                                </td>
+<td>{{ $laporan->jumlah_yatim }}</td>
 
-                                <td>
-                                    {{ $laporan->jumlah_duafa_anak }}
-                                </td>
+<td>{{ $laporan->jumlah_piatu }}</td>
 
-                                <td>
-                                    {{ $laporan->jumlah_duafa_lansia }}
-                                </td>
+<td>{{ $laporan->jumlah_yatim_piatu }}</td>
+
+<td>{{ $laporan->jumlah_duafa_anak }}</td>
+
+<td>{{ $laporan->jumlah_duafa_lansia }}</td>
 
                                 <td>
 
@@ -122,54 +124,58 @@
 
                                     <div class="action-group">
 
-                                        @if($laporan->status == 'Draft')
+    @if($laporan->status == 'Draft')
 
-                                            <form action="{{ route('admin.laporan.publish', $laporan->id) }}" method="POST"
-                                                class="d-inline">
+        <form action="{{ route('admin.laporan.publish', $laporan->id) }}"
+            method="POST"
+            class="d-inline">
 
-                                                @csrf
+            @csrf
 
-                                                <button type="submit" class="btn-publish">
+            <button type="submit" class="btn-publish">
+                <i class="bi bi-megaphone-fill"></i>
+                Publish
+            </button>
 
-                                                    <i class="bi bi-megaphone-fill"></i>
+        </form>
 
-                                                    Publish
+        <button type="button"
+            class="btn p-0 border-0 bg-transparent"
+            data-bs-toggle="modal"
+            data-bs-target="#editLaporan{{ $laporan->id }}">
 
-                                                </button>
+            <i class="bi bi-pencil-square action-icon"></i>
 
-                                            </form>
+        </button>
 
-                                        @endif
+        <form action="{{ route('admin.laporan.hapus', $laporan->id) }}"
+            method="POST"
+            class="d-inline"
+            onsubmit="return confirm('Yakin ingin menghapus laporan ini?')">
 
-                                        <a href="{{ asset('storage/' . $laporan->dokumen) }}" target="_blank"
-                                            class="text-decoration-none">
+            @csrf
+            @method('DELETE')
 
-                                            <i class="bi bi-download action-icon"></i>
+            <button type="submit"
+                style="border:none;background:none;padding:0;">
 
-                                        </a>
+                <i class="bi bi-trash action-icon"></i>
 
-                                        <button type="button" class="btn p-0 border-0 bg-transparent" data-bs-toggle="modal"
-                                            data-bs-target="#editLaporan{{ $laporan->id }}">
+            </button>
 
-                                            <i class="bi bi-pencil-square action-icon"></i>
+        </form>
 
-                                        </button>
+    @endif
 
-                                        <form action="{{ route('admin.laporan.hapus', $laporan->id) }}" method="POST"
-                                            class="d-inline" onsubmit="return confirm('Yakin ingin menghapus laporan ini?')">
+    <a href="{{ asset('storage/' . $laporan->dokumen) }}"
+        target="_blank"
+        class="text-decoration-none">
 
-                                            @csrf
-                                            @method('DELETE')
+        <i class="bi bi-download action-icon"></i>
 
-                                            <button type="submit" style="border:none;background:none;padding:0;">
+    </a>
 
-                                                <i class="bi bi-trash action-icon"></i>
-
-                                            </button>
-
-                                        </form>
-
-                                    </div>
+</div>
 
                                 </td>
 
@@ -211,14 +217,121 @@
 
                                                 </div>
 
+                                                <!-- YATIM -->
                                                 <div class="mb-3">
 
                                                     <label class="form-label">
-                                                        Dana Keluar
+                                                        Bantuan Dana per Anak Yatim
                                                     </label>
 
-                                                    <input type="number" name="dana_keluar" class="form-control"
-                                                        value="{{ $laporan->dana_keluar }}" min="0" required>
+                                                    <input type="text" name="dana_yatim" class="form-control angka-only"
+                                                        value="{{ $laporan->dana_yatim }}" required>
+
+                                                </div>
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Bingkisan per Anak Yatim
+                                                    </label>
+
+                                                    <input type="text" name="bingkisan_yatim" class="form-control angka-only"
+                                                        value="{{ $laporan->bingkisan_yatim }}" required>
+
+                                                </div>
+
+                                                <!-- PIATU -->
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Dana per Anak Piatu
+                                                    </label>
+
+                                                    <input type="text" name="dana_piatu" class="form-control angka-only"
+                                                        value="{{ $laporan->dana_piatu }}" required>
+
+                                                </div>
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Bingkisan per Anak Piatu
+                                                    </label>
+
+                                                    <input type="text" name="bingkisan_piatu" class="form-control angka-only"
+                                                        value="{{ $laporan->bingkisan_piatu }}" required>
+
+                                                </div>
+
+                                                <!-- YATIM PIATU -->
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Dana per Anak Yatim-Piatu
+                                                    </label>
+
+                                                    <input type="text" name="dana_yatim_piatu" class="form-control angka-only"
+                                                        value="{{ $laporan->dana_yatim_piatu }}" required>
+
+                                                </div>
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Bingkisan per Anak Yatim-Piatu
+                                                    </label>
+
+                                                    <input type="text" name="bingkisan_yatim_piatu"
+                                                        class="form-control angka-only"
+                                                        value="{{ $laporan->bingkisan_yatim_piatu }}" required>
+
+                                                </div>
+
+                                                <!-- DUAFA ANAK -->
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Dana per Anak Duafa Anak
+                                                    </label>
+
+                                                    <input type="text" name="dana_duafa_anak" class="form-control angka-only"
+                                                        value="{{ $laporan->dana_duafa_anak }}" required>
+
+                                                </div>
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Bingkisan per Anak Duafa Anak
+                                                    </label>
+
+                                                    <input type="text" name="bingkisan_duafa_anak"
+                                                        class="form-control angka-only"
+                                                        value="{{ $laporan->bingkisan_duafa_anak }}" required>
+
+                                                </div>
+
+                                                <!-- DUAFA LANSIA -->
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Dana per Orang Duafa Lansia
+                                                    </label>
+
+                                                    <input type="text" name="dana_duafa_lansia" class="form-control angka-only"
+                                                        value="{{ $laporan->dana_duafa_lansia }}" required>
+
+                                                </div>
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        Bantuan Bingkisan per Orang Duafa Lansia
+                                                    </label>
+
+                                                    <input type="text" name="bingkisan_duafa_lansia"
+                                                        class="form-control angka-only"
+                                                        value="{{ $laporan->bingkisan_duafa_lansia }}" required>
 
                                                 </div>
 
@@ -347,13 +460,100 @@
 
                         </div>
 
+
                         <div class="mb-3">
 
                             <label class="form-label">
-                                Dana Keluar
+                                Bantuan Dana per Anak Yatim
                             </label>
 
-                            <input type="number" name="dana_keluar" class="form-control" min="0" required>
+                            <input type="text" name="dana_yatim" class="form-control angka-only" min="0" required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Bingkisan per Anak Yatim
+                            </label>
+
+                            <input type="text" name="bingkisan_yatim" class="form-control angka-only" required>
+
+                        </div>
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Dana per Anak Piatu
+                            </label>
+
+                            <input type="text" name="dana_piatu" class="form-control angka-only" required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Bingkisan per Anak Piatu
+                            </label>
+
+                            <input type="text" name="bingkisan_piatu" class="form-control angka-only" required>
+
+                        </div>
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Dana per Anak Yatim-Piatu
+                            </label>
+
+                            <input type="text" name="dana_yatim_piatu" class="form-control angka-only" required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Bingkisan per Anak Yatim-Piatu
+                            </label>
+
+                            <input type="text" name="bingkisan_yatim_piatu" class="form-control angka-only" required>
+
+                        </div>
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Dana per Anak Duafa Anak
+                            </label>
+
+                            <input type="text" name="dana_duafa_anak" class="form-control angka-only" required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Bingkisan per Anak Duafa Anak
+                            </label>
+
+                            <input type="text" name="bingkisan_duafa_anak" class="form-control angka-only" required>
+
+                        </div>
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Dana per Orang Duafa Lansia
+                            </label>
+
+                            <input type="text" name="dana_duafa_lansia" class="form-control angka-only" required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Bantuan Bingkisan per Orang Duafa Lansia
+                            </label>
+
+                            <input type="text" name="bingkisan_duafa_lansia" class="form-control angka-only" required>
 
                         </div>
 
@@ -407,4 +607,37 @@
 
     </div>
 
+    <script>
+
+        document.querySelectorAll('.angka-only').forEach(function (input) {
+
+            input.addEventListener('keydown', function (e) {
+
+                let tombol = [
+                    'Backspace',
+                    'Delete',
+                    'Tab',
+                    'ArrowLeft',
+                    'ArrowRight'
+                ];
+
+                if (tombol.includes(e.key)) {
+                    return;
+                }
+
+                if (!/^[0-9]$/.test(e.key)) {
+                    e.preventDefault();
+                }
+
+            });
+
+            input.addEventListener('input', function () {
+
+                this.value = this.value.replace(/[^0-9]/g, '');
+
+            });
+
+        });
+
+    </script>
 @endsection

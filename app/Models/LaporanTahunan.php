@@ -19,4 +19,9 @@ class LaporanTahunan extends Model
         'published_at',
 
     ];
+
+    public function admin()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 }

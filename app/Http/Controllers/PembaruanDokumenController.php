@@ -16,22 +16,31 @@ class PembaruanDokumenController extends Controller
                 'Duafa Lansia'
             ])
             ->firstOrFail();
-
+            
         if (
-            $pengajuan->status_pembaruan == 'Diterima' &&
-            now()->greaterThanOrEqualTo($pengajuan->tanggal_pembaruan_dokumen)
-        ) {
-            $pengajuan->status_pembaruan = 'Belum';
-            $pengajuan->save();
-        }
+    $pengajuan->status_pembaruan == 'Diterima' &&
+    now()->greaterThanOrEqualTo($pengajuan->tanggal_pembaruan_dokumen)
+) {
+
+    $pengajuan->update([
+        'status_pembaruan' => 'Belum',
+        'tanggal_pengajuan_pembaruan' => null,
+    ]);
+
+}
 
         $wajibUpdate =
             now()->greaterThanOrEqualTo($pengajuan->tanggal_pembaruan_dokumen);
+        $lewatDeadline = now()->gt($pengajuan->tanggal_selesai);
 
-        return view('warga.pengajuan.pembaruan-dokumen', compact(
-            'pengajuan',
-            'wajibUpdate'
-        ));
+        return view(
+            'warga.pengajuan.pembaruan-dokumen',
+            compact(
+                'pengajuan',
+                'wajibUpdate',
+                'lewatDeadline'
+            )
+        );
     }
 
     public function store(Request $request)
@@ -43,6 +52,47 @@ class PembaruanDokumenController extends Controller
                 'Duafa Lansia'
             ])
             ->firstOrFail();
+        /*
+|--------------------------------------------------------------------------
+| Belum masuk jadwal pembaruan
+|--------------------------------------------------------------------------
+*/
+        if (now()->lt($pengajuan->tanggal_pembaruan_dokumen)) {
+
+            return back()->with(
+                'warning',
+                'Belum memasuki jadwal pembaruan dokumen.'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Deadline sudah lewat
+        |--------------------------------------------------------------------------
+        */
+        if (now()->gt($pengajuan->tanggal_selesai)) {
+
+            return back()->with(
+                'warning',
+                'Masa pembaruan dokumen telah berakhir.'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Masih menunggu verifikasi admin
+        |--------------------------------------------------------------------------
+        */
+        if ($pengajuan->status_pembaruan == 'Menunggu') {
+
+            return back()->with(
+                'warning',
+                'Dokumen pembaruan masih menunggu verifikasi admin.'
+            );
+
+        }
 
         $rules = [
             'file_kk' => 'required|mimes:pdf,jpg,jpeg,png|max:5120',

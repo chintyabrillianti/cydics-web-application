@@ -48,4 +48,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(Donasi::class);
     }
+    public function laporans()
+{
+    return $this->hasMany(Laporan::class, 'user_id');
+}
+
+public function laporanTahunans()
+{
+    return $this->hasMany(LaporanTahunan::class, 'user_id');
+}
+
+public function kegiatans()
+{
+    return $this->hasMany(Kegiatan::class, 'user_id');
+}
 }

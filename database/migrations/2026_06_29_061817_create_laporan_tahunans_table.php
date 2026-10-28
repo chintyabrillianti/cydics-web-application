@@ -13,7 +13,7 @@ return new class extends Migration
 {
     Schema::create('laporan_tahunans', function (Blueprint $table) {
 
-        $table->id();
+        $table->increments('id');
 
         // contoh : 2026
         $table->year('periode');

@@ -490,8 +490,12 @@ class DonaturController extends Controller
             ->latest()
             ->take(5)
             ->get();
+        $laporanBulanan = $laporanBulanan->sortBy('periode');
+
+        $saldoSebelumnya = 0;
 
         foreach ($laporanBulanan as $laporan) {
+
 
             $tahun = date('Y', strtotime($laporan->periode));
             $bulan = date('m', strtotime($laporan->periode));
@@ -499,10 +503,14 @@ class DonaturController extends Controller
             $awalBulan = Carbon::create($tahun, $bulan, 1)->startOfMonth();
             $akhirBulan = Carbon::create($tahun, $bulan, 1)->endOfMonth();
 
-            $laporan->dana_masuk = Donasi::where('status', 'Terverifikasi')
-                ->whereYear('created_at', $tahun)
-                ->whereMonth('created_at', $bulan)
-                ->sum('nominal');
+            $laporan->saldo_awal = $saldoSebelumnya;
+
+            $laporan->saldo_akhir =
+                $laporan->saldo_awal +
+                $laporan->dana_masuk -
+                $laporan->dana_keluar;
+
+            $saldoSebelumnya = $laporan->saldo_akhir;
 
             $laporan->jumlah_yatim = Pengajuan::where('kategori_bantuan', 'Yatim')
                 ->where('status_penerima', 'Aktif')
@@ -554,9 +562,11 @@ class DonaturController extends Controller
             'status',
             'Published'
         )
-            ->latest()
+            ->orderBy('periode', 'asc')
             ->take(5)
             ->get();
+
+        $saldoSebelumnya = 0;
 
         foreach ($laporanTahunan as $laporan) {
 
@@ -572,11 +582,21 @@ class DonaturController extends Controller
                 ->sum('nominal');
 
             // Dana Keluar
-            $laporan->dana_keluar = Laporan::where(
-                'periode',
-                'like',
-                $tahun . '-%'
-            )->sum('dana_keluar');
+            $laporan->dana_keluar = Laporan::where('status', 'Published')
+    ->where(
+        'periode',
+        'like',
+        $tahun . '-%'
+    )
+    ->sum('dana_keluar');
+            $laporan->saldo_awal = $saldoSebelumnya;
+
+            $laporan->saldo_akhir =
+                $laporan->saldo_awal +
+                $laporan->dana_masuk -
+                $laporan->dana_keluar;
+
+            $saldoSebelumnya = $laporan->saldo_akhir;
 
             // Yatim
             $laporan->jumlah_yatim = Pengajuan::where('kategori_bantuan', 'Yatim')
@@ -628,6 +648,12 @@ class DonaturController extends Controller
                 })
                 ->count();
         }
+        $laporanBulanan = $laporanBulanan
+            ->sortByDesc('periode')
+            ->values();
+        $laporanTahunan = $laporanTahunan
+            ->sortByDesc('periode')
+            ->values();
 
         return view(
             'donatur.laporan',
@@ -669,24 +695,35 @@ class DonaturController extends Controller
         }
 
         $laporanBulanan = $query
-            ->latest()
+            ->orderBy('periode', 'asc')
             ->paginate(10)
             ->withQueryString();
+
+        $saldoSebelumnya = 0;
 
         $totalLaporan = Laporan::where(
             'status',
             'Published'
         )->count();
 
-        $totalDanaMasuk = Donasi::where(
+        $totalDanaMasuk = Laporan::where(
             'status',
-            'Terverifikasi'
-        )->sum('nominal');
+            'Published'
+        )->sum('dana_masuk');
 
         $totalDanaKeluar = Laporan::where(
             'status',
             'Published'
         )->sum('dana_keluar');
+        $totalSaldoAwal = Laporan::where(
+            'status',
+            'Published'
+        )->sum('saldo_awal');
+
+        $totalSaldoAkhir = Laporan::where(
+            'status',
+            'Published'
+        )->sum('saldo_akhir');
 
         foreach ($laporanBulanan as $laporan) {
 
@@ -696,10 +733,14 @@ class DonaturController extends Controller
             $awalBulan = Carbon::create($tahun, $bulan, 1)->startOfMonth();
             $akhirBulan = Carbon::create($tahun, $bulan, 1)->endOfMonth();
 
-            $laporan->dana_masuk = Donasi::where('status', 'Terverifikasi')
-                ->whereYear('created_at', $tahun)
-                ->whereMonth('created_at', $bulan)
-                ->sum('nominal');
+            $laporan->saldo_awal = $saldoSebelumnya;
+
+            $laporan->saldo_akhir =
+                $laporan->saldo_awal +
+                $laporan->dana_masuk -
+                $laporan->dana_keluar;
+
+            $saldoSebelumnya = $laporan->saldo_akhir;
 
             $laporan->jumlah_yatim = Pengajuan::where('kategori_bantuan', 'Yatim')
                 ->where('status_penerima', 'Aktif')
@@ -754,7 +795,9 @@ class DonaturController extends Controller
                 'laporanBulanan',
                 'totalLaporan',
                 'totalDanaMasuk',
-                'totalDanaKeluar'
+                'totalDanaKeluar',
+                'totalSaldoAwal',
+                'totalSaldoAkhir'
             )
         );
     }
@@ -765,9 +808,10 @@ class DonaturController extends Controller
             'status',
             'Published'
         )
-            ->latest()
+            ->orderBy('periode', 'asc')
             ->paginate(10);
 
+        $saldoSebelumnya = 0;
         foreach ($laporanTahunan as $laporan) {
 
             $tahun = $laporan->periode;
@@ -776,15 +820,25 @@ class DonaturController extends Controller
 
             $akhirTahun = Carbon::create($tahun, 12, 31)->endOfYear();
 
-            $laporan->dana_masuk = Donasi::where('status', 'Terverifikasi')
-                ->whereYear('created_at', $tahun)
-                ->sum('nominal');
+            $laporan->dana_masuk = Laporan::where('status', 'Published')
+    ->where('periode', 'like', $tahun . '-%')
+    ->sum('dana_masuk');
 
-            $laporan->dana_keluar = Laporan::where(
-                'periode',
-                'like',
-                $tahun . '-%'
-            )->sum('dana_keluar');
+            $laporan->dana_keluar = Laporan::where('status', 'Published')
+    ->where(
+        'periode',
+        'like',
+        $tahun . '-%'
+    )
+    ->sum('dana_keluar');
+            $laporan->saldo_awal = $saldoSebelumnya;
+
+            $laporan->saldo_akhir =
+                $laporan->saldo_awal +
+                $laporan->dana_masuk -
+                $laporan->dana_keluar;
+
+            $saldoSebelumnya = $laporan->saldo_akhir;
 
             $laporan->jumlah_yatim = Pengajuan::where('kategori_bantuan', 'Yatim')
                 ->where('status_penerima', 'Aktif')

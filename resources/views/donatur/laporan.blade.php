@@ -29,12 +29,11 @@
                 <thead>
 
                     <tr>
-
                         <th>Periode</th>
-
+                        <th>Saldo Awal</th>
                         <th>Dana Masuk</th>
-
                         <th>Dana Keluar</th>
+                        <th>Saldo Akhir</th>
 
                         <th>Yatim</th>
 
@@ -59,21 +58,23 @@
                         <tr>
 
                             <td>
-
                                 {{ \Carbon\Carbon::parse($laporan->periode)->translatedFormat('F Y') }}
-
                             </td>
 
                             <td>
+                                Rp {{ number_format($laporan->saldo_awal, 0, ',', '.') }}
+                            </td>
 
+                            <td>
                                 Rp {{ number_format($laporan->dana_masuk, 0, ',', '.') }}
-
                             </td>
 
                             <td>
-
                                 Rp {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
+                            </td>
 
+                            <td>
+                                Rp {{ number_format($laporan->saldo_akhir, 0, ',', '.') }}
                             </td>
 
                             <td>
@@ -190,6 +191,12 @@
                                 </td>
 
                             </tr>
+                            <tr>
+                                <th>Saldo Awal</th>
+                                <td>
+                                    Rp {{ number_format($laporan->saldo_awal, 0, ',', '.') }}
+                                </td>
+                            </tr>
 
                             <tr>
 
@@ -217,6 +224,13 @@
 
                                 </td>
 
+                            </tr>
+                            <tr>
+                                <th>Saldo Akhir</th>
+
+                                <td>
+                                    Rp {{ number_format($laporan->saldo_akhir, 0, ',', '.') }}
+                                </td>
                             </tr>
 
                             <tr>
@@ -342,8 +356,10 @@
                     <tr>
 
                         <th>Tahun</th>
+                        <th>Saldo Awal</th>
                         <th>Dana Masuk</th>
                         <th>Dana Keluar</th>
+                        <th>Saldo Akhir</th>
                         <th>Yatim</th>
                         <th>Piatu</th>
                         <th>Yatim Piatu</th>
@@ -364,11 +380,19 @@
                             <td>{{ $laporan->periode }}</td>
 
                             <td>
+                                Rp {{ number_format($laporan->saldo_awal, 0, ',', '.') }}
+                            </td>
+
+                            <td>
                                 Rp {{ number_format($laporan->dana_masuk, 0, ',', '.') }}
                             </td>
 
                             <td>
                                 Rp {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
+                            </td>
+
+                            <td>
+                                Rp {{ number_format($laporan->saldo_akhir, 0, ',', '.') }}
                             </td>
 
                             <td>{{ $laporan->jumlah_yatim }}</td>
@@ -398,7 +422,7 @@
 
                         <tr>
 
-                            <td colspan="9" class="text-center">
+                            <td colspan="11" class="text-center">
 
                                 Belum ada laporan tahunan.
 
@@ -465,6 +489,19 @@
                                 </td>
 
                             </tr>
+                            <tr>
+
+                                <th>
+                                    Saldo Awal
+                                </th>
+
+                                <td>
+
+                                    Rp {{ number_format($laporan->saldo_awal, 0, ',', '.') }}
+
+                                </td>
+
+                            </tr>
 
                             <tr>
 
@@ -489,6 +526,19 @@
                                 <td>
 
                                     Rp {{ number_format($laporan->dana_keluar, 0, ',', '.') }}
+
+                                </td>
+
+                            </tr>
+                            <tr>
+
+                                <th>
+                                    Saldo Akhir
+                                </th>
+
+                                <td>
+
+                                    Rp {{ number_format($laporan->saldo_akhir, 0, ',', '.') }}
 
                                 </td>
 

@@ -7,18 +7,40 @@ use Illuminate\Database\Eloquent\Model;
 class Laporan extends Model
 {
     protected $fillable = [
+    'user_id',
 
-        'periode',
+    'periode',
 
-        'dana_keluar',
+    'saldo_awal',
+    'dana_masuk',
+    'dana_keluar',
+    'saldo_akhir',
 
-        'dokumen',
+    'dana_yatim',
+    'bingkisan_yatim',
 
-        'keterangan',
+    'dana_piatu',
+    'bingkisan_piatu',
 
-        'status',
+    'dana_yatim_piatu',
+    'bingkisan_yatim_piatu',
 
-        'published_at',
+    'dana_duafa_anak',
+    'bingkisan_duafa_anak',
 
-    ];
+    'dana_duafa_lansia',
+    'bingkisan_duafa_lansia',
+
+    'dokumen',
+
+    'keterangan',
+
+    'status',
+
+    'published_at',
+];
+    public function admin()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Pengajuan;
+use App\Models\WebsiteSetting;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -13,6 +14,7 @@ class DashboardController extends Controller
         $this->resetStatusPerbaikan();
         $this->resetStatusPembaruan();
         $this->resetStatusUsia();
+        $website = WebsiteSetting::first();
         /*
         |--------------------------------------------------------------------------
         | 1. AMBIL DATA AWAL PENGAJUAN
@@ -53,6 +55,11 @@ class DashboardController extends Controller
         */
         $pembaruanDitolak = Pengajuan::where('user_id', auth()->id())
             ->where('status_pembaruan', 'Ditolak')
+            ->whereNotNull('tanggal_boleh_ajukan')
+            ->where(function ($q) {
+                $q->where('catatan_admin', 'like', '%batas waktu%')
+                    ->orWhere('catatan_admin', 'like', '%tidak dikirim%');
+            })
             ->latest()
             ->first();
         $riwayat = Pengajuan::where('user_id', auth()->id())
@@ -84,6 +91,10 @@ class DashboardController extends Controller
             if ($pengajuan->status_pembaruan == 'Menunggu') {
 
                 $pembaruanMenunggu = true;
+
+            } elseif ($pengajuan->status_pembaruan == 'Diterima') {
+
+                // tidak tampilkan notif pembaruan
 
             } else {
 
@@ -205,124 +216,128 @@ class DashboardController extends Controller
         }
 
         // Tidak sedang menerima bantuan aktif
-if (
-    !$pengajuan &&
-    !$pembaruanDitolak
-) {
+        if (
+            !$pengajuan &&
+            !$pembaruanDitolak
+        ) {
 
-    // Cek apakah bantuan terakhir berakhir karena usia
-    $bantuanBerakhirKarenaUsia = false;
-
-    if (
-        $riwayat->isNotEmpty() &&
-        $riwayat->first()->catatan_admin &&
-        str_contains(
-            strtolower($riwayat->first()->catatan_admin),
-            'usia'
-        )
-    ) {
-        $bantuanBerakhirKarenaUsia = true;
-    }
-
-    // Kalau bukan karena usia, gunakan logika lama
-    if (!$bantuanBerakhirKarenaUsia) {
-
-        if (!$pengajuanBaru) {
-
-            $bolehAjukanLagi = true;
-
-        } elseif ($pengajuanBaru->status_pengajuan == 'Ditolak') {
+            // Cek apakah bantuan terakhir berakhir karena usia
+            $bantuanBerakhirKarenaUsia = false;
 
             if (
-                !$pengajuanBaru->tanggal_boleh_ajukan ||
-                now()->greaterThanOrEqualTo(
-                    Carbon::parse($pengajuanBaru->tanggal_boleh_ajukan)
+                $riwayat->isNotEmpty() &&
+                $riwayat->first()->catatan_admin &&
+                str_contains(
+                    strtolower($riwayat->first()->catatan_admin),
+                    'usia'
                 )
             ) {
+                $bantuanBerakhirKarenaUsia = true;
+            }
 
-                $bolehAjukanLagi = true;
+            // Kalau bukan karena usia, gunakan logika lama
+            if (!$bantuanBerakhirKarenaUsia) {
+
+                if (!$pengajuanBaru) {
+
+                    $bolehAjukanLagi = true;
+
+                } elseif ($pengajuanBaru->status_pengajuan == 'Ditolak') {
+
+                    if (
+                        !$pengajuanBaru->tanggal_boleh_ajukan ||
+                        now()->greaterThanOrEqualTo(
+                            Carbon::parse($pengajuanBaru->tanggal_boleh_ajukan)
+                        )
+                    ) {
+
+                        $bolehAjukanLagi = true;
+
+                    }
+
+                }
 
             }
 
         }
-
-    }
-
-}
         return view('warga.dashboard', compact(
-            'pengajuan',
-            'pengajuanBaru',
-            'perubahan',
-            'riwayat',
-            'notifPembaruan',
-            'sisaHari',
-            'sisaPerbaikan',
-            'sisaPerbaikanKategori',
-            'bolehAjukanLagi',
-            'sisaTungguPengajuan',
-            'tanggalPengajuan',
-            'sisaTungguPerubahan',
-            'pembaruanMenunggu',
-            'tanggalPerubahan',
-            'pembaruanDitolak'
-        ));
+    'pengajuan',
+    'pengajuanBaru',
+    'perubahan',
+    'riwayat',
+    'notifPembaruan',
+    'sisaHari',
+    'sisaPerbaikan',
+    'sisaPerbaikanKategori',
+    'bolehAjukanLagi',
+    'sisaTungguPengajuan',
+    'tanggalPengajuan',
+    'sisaTungguPerubahan',
+    'pembaruanMenunggu',
+    'tanggalPerubahan',
+    'pembaruanDitolak',
+    'website'
+));
     }
 
     private function resetStatusPerbaikan()
-{
-    Pengajuan::where('status_pengajuan', 'Perbaikan')
-        ->whereDate('tanggal_selesai', '<=', today())
-        ->update([
-            'status_pengajuan'      => 'Ditolak',
-            'status_penerima'       => 'Tidak Aktif',
-            'tanggal_keputusan'     => now(),
-            'tanggal_boleh_ajukan'  => now()->addDays(30),
-            'catatan_admin'         => 'Perbaikan dokumen melewati batas waktu.'
-        ]);
-}
+    {
+        Pengajuan::where('status_pengajuan', 'Perbaikan')
+            ->whereDate('tanggal_selesai', '<=', today())
+            ->update([
+                'status_pengajuan' => 'Ditolak',
+                'status_penerima' => 'Tidak Aktif',
+                'tanggal_keputusan' => now(),
+                'tanggal_boleh_ajukan' => now()->addDays(30),
+                'catatan_admin' => 'Perbaikan dokumen melewati batas waktu.'
+            ]);
+    }
 
-private function resetStatusPembaruan()
-{
-    Pengajuan::whereIn('kategori_bantuan', [
+    private function resetStatusPembaruan()
+    {
+        Pengajuan::whereIn('kategori_bantuan', [
             'Duafa Anak',
             'Duafa Lansia'
         ])
-        ->where('status_pengajuan', 'Diterima')
-        ->where('status_penerima', 'Aktif')
-        ->where('status_pembaruan', 'Belum')
-        ->whereDate('tanggal_selesai', '<=', today())
-        ->update([
-            'status_penerima'      => 'Tidak Aktif',
-            'status_pembaruan'     => 'Ditolak',
-            'tanggal_keputusan'    => now(),
-            'tanggal_boleh_ajukan' => now()->addDays(30),
-            'catatan_admin'        => 'Pembaruan dokumen melewati batas waktu.'
-        ]);
-}
+            ->where('status_pengajuan', 'Diterima')
+            ->where('status_penerima', 'Aktif')
+            ->where('status_pembaruan', 'Belum')
+            ->whereDate('tanggal_selesai', '<=', today())
+            ->update([
+                'status_pembaruan' => 'Ditolak',
+                'status_penerima' => 'Tidak Aktif',
+                'tanggal_keputusan' => now(),
+                'tanggal_boleh_ajukan' => now()->addDays(30),
+                'catatan_admin' => 'Pembaruan dokumen berakhir karena melewati batas waktu.'
+            ]);
+    }
 
-private function resetStatusUsia()
-{
-    $pengajuan = Pengajuan::whereIn('kategori_bantuan', [
+    private function resetStatusUsia()
+    {
+        $pengajuan = Pengajuan::whereIn('kategori_bantuan', [
             'Yatim',
             'Piatu',
-            'Yatim-Piatu'
+            'Yatim-Piatu',
+            'Duafa Anak'
         ])
-        ->where('status_pengajuan', 'Diterima')
-        ->where('status_penerima', 'Aktif')
-        ->get();
+            ->where('status_pengajuan', 'Diterima')
+            ->where('status_penerima', 'Aktif')
+            ->get();
 
-    foreach ($pengajuan as $item) {
+        foreach ($pengajuan as $item) {
 
-        $umur = Carbon::parse($item->tanggal_lahir)->age;
+            $umur = Carbon::parse($item->tanggal_lahir)->age;
 
-        if ($umur >= 18) {
+            if ($umur >= 18) {
 
-            $item->update([
-                'status_penerima'      => 'Tidak Aktif',
-                'tanggal_keputusan'    => now(),
-                'catatan_admin'        => 'Bantuan berakhir karena penerima telah melewati batas usia maksimal 18 tahun.'
-            ]);
+                $item->update([
+                    'status_penerima' => 'Tidak Aktif',
+                    'tanggal_keputusan' => now(),
+                    'tanggal_selesai' => now(),
+                    'status_pembaruan' => null,
+                    'catatan_admin' => 'Bantuan berakhir karena penerima telah melewati batas usia maksimal 18 tahun.'
+                ]);
+            }
         }
     }
-}
 }

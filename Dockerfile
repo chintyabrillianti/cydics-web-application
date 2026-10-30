@@ -30,6 +30,9 @@ RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
+RUN sed -ri 's/Listen 80/Listen 10000/' /etc/apache2/ports.conf \
+    && sed -ri 's/<VirtualHost \*:80>/<VirtualHost *:10000>/' \
+    /etc/apache2/sites-available/*.conf
 WORKDIR /var/www/html
 
 COPY . .
@@ -41,6 +44,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 
 COPY --from=frontend /app/public/build /var/www/html/public/build
 
-EXPOSE 80
+EXPOSE 10000
 
 CMD ["apache2-foreground"]
